@@ -1,0 +1,57 @@
+# Virtual environments
+venv_kimvieware/
+venv/
+.venv/
+env/
+ENV/
+bin/
+include/
+lib/
+share/
+pyvenv.cfg
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Unit test / coverage reports
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.run/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+log/
+
+# Local archives
+*.zip
+*.tar.gz
+*.rar
+
+# Project specific
+uploads/
+integration_report.json
+SCIENTIFIC_EVALUATION_REPORT.json
+integration-env/
