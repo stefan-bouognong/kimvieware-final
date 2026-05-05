@@ -46,6 +46,16 @@ class JavaExtractionStrategy(ExtractionStrategy):
         return extractor.extract_paths(source_dir)
 
 
+class JsExtractionStrategy(ExtractionStrategy):
+    def get_language(self) -> str:
+        return "javascript"
+
+    def extract_paths(self, source_dir: Path, max_paths: int = 1000) -> List[Trajectory]:
+        from .js_extractor import JSExtractor
+        extractor = JSExtractor(max_paths=max_paths)
+        return extractor.extract_paths(source_dir)
+
+
 class ExtractorRegistry:
     def __init__(self):
         self._strategies: Dict[str, ExtractionStrategy] = {}
@@ -62,3 +72,7 @@ registry = ExtractorRegistry()
 registry.register(PythonExtractionStrategy())
 registry.register(CppExtractionStrategy())
 registry.register(JavaExtractionStrategy())
+registry.register(JsExtractionStrategy())
+registry._strategies["js"] = registry._strategies["javascript"]
+registry._strategies["typescript"] = registry._strategies["javascript"]
+registry._strategies["ts"] = registry._strategies["javascript"]
