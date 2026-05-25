@@ -9,17 +9,17 @@ echo ""
 BASEDIR="/home/davie/KIMVIWARE"
 VENV="$BASEDIR/venv_kimvieware/bin/python"
 
-echo "📊 RÉSULTATS JSON DISPONIBLES:"
+echo " RÉSULTATS JSON DISPONIBLES:"
 echo ""
 
 # Check files
 if [ -f "$BASEDIR/MULTILANG_COMPREHENSIVE_REPORT.json" ]; then
-    echo "  ✅ MULTILANG_COMPREHENSIVE_REPORT.json"
+    echo "   MULTILANG_COMPREHENSIVE_REPORT.json"
     echo "     $(wc -l < $BASEDIR/MULTILANG_COMPREHENSIVE_REPORT.json) lignes"
 fi
 
 if [ -f "$BASEDIR/MULTILANG_TEST_REPORT.json" ]; then
-    echo "  ✅ MULTILANG_TEST_REPORT.json"
+    echo "   MULTILANG_TEST_REPORT.json"
     echo "     $(wc -l < $BASEDIR/MULTILANG_TEST_REPORT.json) lignes"
 fi
 
@@ -44,7 +44,7 @@ echo "   cat $BASEDIR/TESTING_REPORT_MARKDOWN.md"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "📊 RÉSUMÉ RAPIDE DES RÉSULTATS:"
+echo " RÉSUMÉ RAPIDE DES RÉSULTATS:"
 echo ""
 
 $VENV << 'PYTHON_SCRIPT'
@@ -62,19 +62,19 @@ if report_file.exists():
     if py:
         tests = py.get('tests', {})
         if 'unit_tests' in tests:
-            print(f"   ✅ Unit Tests: {tests['unit_tests']['success_rate']} ({tests['unit_tests']['passed']}/{tests['unit_tests']['total']})")
+            print(f"    Unit Tests: {tests['unit_tests']['success_rate']} ({tests['unit_tests']['passed']}/{tests['unit_tests']['total']})")
         loc = tests.get('source_analysis', {}).get('lines_of_code') or tests.get('code_quality', {}).get('lines_of_code')
         if loc:
             print(f"   📝 Lines of Code: {loc}")
     
     print("")
-    print("🔧 C Auth Service:")
+    print(" C Auth Service:")
     c = data['services_tested'].get('c', {})
     if c:
         tests = c.get('tests', {})
         comp = tests.get('compilation', {})
         if comp:
-            print(f"   ✅ Compilation: {comp.get('status')}")
+            print(f"    Compilation: {comp.get('status')}")
         loc = tests.get('source_analysis', {}).get('lines_of_code')
         if loc:
             print(f"   📝 Lines of Code: {loc}")
@@ -86,14 +86,14 @@ if report_file.exists():
         tests = java.get('tests', {})
         analysis = tests.get('structural_analysis', {})
         if analysis:
-            print(f"   ✅ Static Analysis: {analysis['success_rate']} ({analysis['passed']}/{analysis['total']})")
+            print(f"    Static Analysis: {analysis['success_rate']} ({analysis['passed']}/{analysis['total']})")
         loc = tests.get('code_quality', {}).get('lines_of_code')
         if loc:
             print(f"   📝 Lines of Code: {loc}")
     
     print("")
     summary = data['overall_summary']
-    print(f"📈 GLOBAL RESULTS:")
+    print(f" GLOBAL RESULTS:")
     print(f"   Tests executed:  {summary['total_tests_executed']}")
     print(f"   Tests passed:    {summary['total_tests_passed']}")
     print(f"   Success rate:    {summary['overall_success_rate']}")
@@ -103,6 +103,6 @@ PYTHON_SCRIPT
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "✨ Framework Status: OPERATIONAL ✅"
+echo " Framework Status: OPERATIONAL "
 echo "🎯 Ready for KIMVIWARE Pipeline Submission"
 echo ""

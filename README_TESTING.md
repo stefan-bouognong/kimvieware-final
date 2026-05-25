@@ -1,11 +1,11 @@
 # 🎯 KIMVIWARE - Multi-Language Symbolic Execution Framework
 ## Automated Test Generation & Path Explosion Solution
 
-**Status**: ✅ Framework Complete & Ready for Testing
+**Status**:  Framework Complete & Ready for Testing
 
 ---
 
-## 📋 Executive Summary
+##  Executive Summary
 
 KIMVIWARE is a complete framework for automated test generation using multi-language symbolic execution. It addresses the critical **path explosion problem** through two innovative algorithms:
 
@@ -13,20 +13,20 @@ KIMVIWARE is a complete framework for automated test generation using multi-lang
 2. **EvoPath-GA** - Evolutionary Path Genetic Algorithm (33-50% additional reduction)
 
 **Results**: 
-- ✅ 93% total path reduction while maintaining 95%+ code coverage
-- ✅ Mutation score >90% demonstrating high test quality
-- ✅ Fully automated 4-phase pipeline
-- ✅ Multi-language support: Python, C, C++, Java
+-  93% total path reduction while maintaining 95%+ code coverage
+-  Mutation score >90% demonstrating high test quality
+-  Fully automated 4-phase pipeline
+-  Multi-language support: Python, C, C++, Java
 
 ---
 
 ## 🏗️ Infrastructure Status
 
 ```
-✅ RabbitMQ (5672)      - Message broker
-✅ MongoDB (27017)      - Trajectory storage
-✅ Redis (6379)         - Caching
-✅ MinIO (9000)         - Object storage
+ RabbitMQ (5672)      - Message broker
+ MongoDB (27017)      - Trajectory storage
+ Redis (6379)         - Caching
+ MinIO (9000)         - Object storage
 ```
 
 All services confirmed healthy and operational.
@@ -90,7 +90,7 @@ KIMVIWARE/
 
 ---
 
-## 🔄 Pipeline Architecture
+##  Pipeline Architecture
 
 ### **Phase 0: Validation & Detection** (2-5s)
 - Language detection (Python, C, C++, Java)
@@ -193,7 +193,7 @@ Target: >90%
 
 ---
 
-## 📊 Expected Results
+##  Expected Results
 
 ### **auth-service** (Python, 22 branches)
 | Phase | Trajectories | Change | Reduction | Fitness |
@@ -214,7 +214,7 @@ Target: >90%
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### **1. Prerequisites**
 ```bash
@@ -226,12 +226,12 @@ docker compose --version
 python3 --version
 ```
 
-### **2. Infrastructure Status** (Already Running ✅)
+### **2. Infrastructure Status** (Already Running )
 ```bash
-✅ RabbitMQ (5672)
-✅ MongoDB (27017)
-✅ Redis (6379)
-✅ MinIO (9000)
+ RabbitMQ (5672)
+ MongoDB (27017)
+ Redis (6379)
+ MinIO (9000)
 ```
 
 ### **3. Run Complete Test**
@@ -262,7 +262,7 @@ mongosh -u admin -p kimvie2025 --eval "db.kimvieware.jobs.find().pretty()"
 
 ---
 
-## 📈 Test Files Generated
+##  Test Files Generated
 
 | File | Purpose |
 |------|---------|
@@ -276,13 +276,13 @@ mongosh -u admin -p kimvie2025 --eval "db.kimvieware.jobs.find().pretty()"
 
 ---
 
-## 🔍 Services Under Test (SUTs)
+##  Services Under Test (SUTs)
 
 | Service | Language | LOC | Functions | Branches | Status |
 |---------|----------|-----|-----------|----------|--------|
-| auth-service | Python | 450 | 10 | 22 | ✅ Ready |
-| course-service | Python | 520 | 12 | 30 | ✅ Ready |
-| room-service | Python | 480 | 11 | 35 | ✅ Ready |
+| auth-service | Python | 450 | 10 | 22 |  Ready |
+| course-service | Python | 520 | 12 | 30 |  Ready |
+| room-service | Python | 480 | 11 | 35 |  Ready |
 | grade-service | Python | 850 | 18 | 80 | Ready |
 | timetable-service | Python | 1200 | 25 | 150 | Ready |
 
@@ -299,11 +299,11 @@ mongosh -u admin -p kimvie2025 --eval "db.kimvieware.jobs.find().pretty()"
 python test_complete_pipeline.py
 
 # This will:
-1. ✅ Validate infrastructure
-2. ✅ Create auth-service.zip
-3. ✅ Submit to RabbitMQ queue
-4. ✅ Monitor Phase 0-4 execution
-5. ✅ Display results as they complete
+1.  Validate infrastructure
+2.  Create auth-service.zip
+3.  Submit to RabbitMQ queue
+4.  Monitor Phase 0-4 execution
+5.  Display results as they complete
 ```
 
 ### **Manual Testing** (Optional)
@@ -344,17 +344,17 @@ python ~/KIMVIWARE/test_complete_pipeline.py
 
 ### **Expected Test Output**
 ```
-✅ Infrastructure Status: Healthy
-✅ Services Under Test: 5 available
-✅ Job submitted: uuid-xxxx
+ Infrastructure Status: Healthy
+ Services Under Test: 5 available
+ Job submitted: uuid-xxxx
 ⏳ Phase 0: Validation (2-5s)
 ⏳ Phase 1: Extraction (10-30s)
 ⏳ Phase 2: SGATS Reduction (5-15s)
 ⏳ Phase 3: EvoPath-GA (60-300s)
 ⏳ Phase 4: Mutation Testing (300-1800s)
-✅ Job completed successfully
+ Job completed successfully
 
-📊 Results:
+ Results:
    Phase 1: 140 trajectories
    Phase 2: 21 after reduction (85%)
    Phase 3: 10 after optimization (fitness: 0.631)
@@ -418,7 +418,7 @@ python ~/KIMVIWARE/test_complete_pipeline.py
 
 ---
 
-## ✅ Verification Checklist
+##  Verification Checklist
 
 - [x] Infrastructure healthy (RabbitMQ, MongoDB, Redis, MinIO)
 - [x] All 5 SUTs available and ready
@@ -433,7 +433,7 @@ python ~/KIMVIWARE/test_complete_pipeline.py
 
 ---
 
-## 🚀 Next Steps
+##  Next Steps
 
 1. **Run the complete test**:
    ```bash
@@ -468,7 +468,7 @@ For testing issues:
 ---
 
 **KIMVIWARE v1.0** - Multi-Language Symbolic Execution Framework  
-Framework Status: ✅ **COMPLETE & OPERATIONAL**  
+Framework Status:  **COMPLETE & OPERATIONAL**  
 Last Updated: 2026-01-22
 
 ---

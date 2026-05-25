@@ -139,10 +139,10 @@ class MultiLanguageOrchestrator:
                         last_status = status
                     
                     if status == 'completed':
-                        logger.info(f"  {language:10s} - ✅ Completed")
+                        logger.info(f"  {language:10s} -  Completed")
                         return job
                     elif status == 'failed':
-                        logger.error(f"  {language:10s} - ❌ Failed: {job.get('error')}")
+                        logger.error(f"  {language:10s} -  Failed: {job.get('error')}")
                         return job
                 
                 time.sleep(10)
@@ -164,7 +164,7 @@ class MultiLanguageOrchestrator:
             logger.error("No SUT ZIPs available")
             return False
         
-        logger.info(f"\n✅ {len(zip_files)} services ready for testing\n")
+        logger.info(f"\n {len(zip_files)} services ready for testing\n")
         
         # Step 2: Submit all jobs
         self.print_header("📤 SUBMITTING JOBS")
@@ -198,7 +198,7 @@ class MultiLanguageOrchestrator:
     
     def print_results(self, jobs_data: Dict):
         """Print comprehensive results"""
-        self.print_header("📊 ORCHESTRATION RESULTS")
+        self.print_header(" ORCHESTRATION RESULTS")
         
         print(f"{'Language':<12} {'Status':<15} {'Phase 1':<12} {'Phase 2':<12} {'Phase 3':<12} {'Mutation':<12}")
         print("-" * 90)
@@ -218,10 +218,10 @@ class MultiLanguageOrchestrator:
             p3 = phases.get('phase3', {}).get('optimized_trajectories_count', '—')
             mutation = f"{phases.get('phase4', {}).get('mutation_score', 0):.0%}" if phases.get('phase4', {}).get('mutation_score') else '—'
             
-            status_icon = "✅" if status == 'completed' else "⏳" if status == 'running' else "❌"
+            status_icon = "" if status == 'completed' else "⏳" if status == 'running' else ""
             print(f"{language:<12} {status_icon} {status:<13} {str(p1):<12} {str(p2):<12} {str(p3):<12} {mutation:<12}")
         
-        self.print_header("📈 DETAILED RESULTS")
+        self.print_header(" DETAILED RESULTS")
         
         for language, result in jobs_data.items():
             job_data = result['data']
@@ -256,7 +256,7 @@ class MultiLanguageOrchestrator:
                 print(f"  Phase 4: {p4.get('mutation_score', 0):.1%} mutation score")
         
         print("\n" + "="*80)
-        print("✅ ORCHESTRATION COMPLETE")
+        print(" ORCHESTRATION COMPLETE")
         print("="*80 + "\n")
 
 def main():
@@ -267,10 +267,10 @@ def main():
         success = orchestrator.run_orchestration()
         return 0 if success else 1
     except KeyboardInterrupt:
-        logger.info("\n\n⚠️ Orchestration interrupted")
+        logger.info("\n\n Orchestration interrupted")
         return 0
     except Exception as e:
-        logger.error(f"\n❌ Error: {e}")
+        logger.error(f"\n Error: {e}")
         import traceback
         traceback.print_exc()
         return 1

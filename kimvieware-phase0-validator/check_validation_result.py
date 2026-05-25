@@ -16,9 +16,9 @@ method, properties, body = channel.basic_get(queue='validation.completed', auto_
 
 if method:
     result = json.loads(body)
-    print("✅ Validation result:")
+    print(" Validation result:")
     print(json.dumps(result, indent=2))
 else:
-    print("❌ No result in queue")
+    print(" No result in queue")
 
 connection.close()

@@ -1,507 +1,404 @@
 """
-JavaScript/TypeScript Trajectory Extractor using Acorn
-Calls Node.js + acorn via subprocess to parse JS/TS AST
+JS/TS Trajectory Extractor — Version avancée (alignée PythonExtractor)
+
+Features:
+- AST via Acorn
+- Support fonctions + programme global
+- PathCrawler symbolique
+- Extraction des constantes (const/let)
+- Construction Pi(t)
+- Vérification SMT (Z3)
 """
+
 import json
 import subprocess
 import tempfile
 import textwrap
+import time
 from pathlib import Path
-from typing import List, Set
+from typing import List, Dict, Any, Tuple
 import logging
-from dataclasses import dataclass, field
 
 from kimvieware_shared.models import Trajectory
 
 logger = logging.getLogger(__name__)
 
+# ─────────────────────────────────────────────
+# Z3 SMT
+# ─────────────────────────────────────────────
 
-@dataclass
-class CFGNode:
-    """Control Flow Graph Node for JavaScript"""
-    node_id: int
-    kind: str
-    location: str
-    children: List[int] = field(default_factory=list)
-    is_branch: bool = False
+def _check_feasibility_z3(constraints: List[str]) -> Tuple[bool, str]:
+    if not constraints:
+        return True, "SAT"
 
+    try:
+        import z3
+        solver = z3.Solver()
+        solver.set("timeout", 2000)
+
+        vars_declared = {}
+
+        def get_var(name):
+            if name not in vars_declared:
+                vars_declared[name] = z3.Int(name)
+            return vars_declared[name]
+
+        for c in constraints:
+            parsed = _parse_constraint_to_z3(c, get_var)
+            if parsed is not None:
+                solver.add(parsed)
+
+        res = solver.check()
+
+        if res == z3.sat:
+            return True, "SAT"
+        elif res == z3.unsat:
+            return False, "UNSAT"
+        else:
+            return True, "UNKNOWN"
+
+    except Exception as e:
+        logger.debug(f"Z3 error: {e}")
+        return True, "UNKNOWN"
+
+
+def _parse_constraint_to_z3(cstr: str, get_var):
+    try:
+        import z3
+
+        cstr = cstr.replace("===", "==").replace("!==", "!=")
+
+        for op in ["==", "!=", ">=", "<=", ">", "<"]:
+            if op in cstr:
+                lhs, rhs = cstr.split(op, 1)
+                lhs = lhs.strip()
+                rhs = rhs.strip()
+
+                if not lhs.isidentifier():
+                    return None
+
+                lhs = get_var(lhs)
+
+                if rhs.isdigit():
+                    rhs = int(rhs)
+                elif rhs in ("true", "false"):
+                    rhs = 1 if rhs == "true" else 0
+                elif rhs.isidentifier():
+                    rhs = get_var(rhs)
+                else:
+                    return None
+
+                ops = {
+                   "==": lhs == rhs,
+                    "!=": lhs != rhs,
+                    ">=": lhs >= rhs,
+                    "<=": lhs <= rhs,
+                    ">": lhs > rhs,
+                    "<": lhs < rhs,
+                }
+
+                return ops[op]
+
+        return None
+
+    except Exception:
+        return None
+
+
+# ─────────────────────────────────────────────
+# PathCrawler JS
+# ─────────────────────────────────────────────
+
+class JSPathCrawler:
+
+    def __init__(self, source_text: str = "", max_paths: int = 1000):
+        self.source_text = source_text
+        self.max_paths = max_paths
+
+    def _extract_condition(self, node):
+        if not isinstance(node, dict):
+            return "cond"
+        start = node.get("start")
+        end = node.get("end")
+        if start is not None and end is not None and self.source_text:
+            return self.source_text[start:end]
+        return "cond"
+
+    def explore_function(self, func_node: dict):
+        #  Support GLOBAL PROGRAM
+        if func_node.get("type") == "Program":
+            body = func_node.get("body", [])
+        else:
+            body = func_node.get("body", {}).get("body", [])
+
+        paths = [[]]
+
+        for stmt in body:
+            new_paths = []
+            for p in paths:
+                new_paths.extend(self._explore(stmt, p))
+                if len(new_paths) > self.max_paths:
+                    new_paths = new_paths[:self.max_paths]
+            paths = new_paths
+
+        return paths
+
+    def _explore(self, node, current_path):
+        if not isinstance(node, dict):
+            return [current_path]
+
+        t = node.get("type")
+        line = node.get("loc", {}).get("start", {}).get("line", 0)
+
+        # ───── IF ─────
+        if t == "IfStatement":
+            cond = self._extract_condition(node.get("test"))
+
+            true_step = {"type": "branch", "cond": cond, "val": True, "line": line}
+            false_step = {"type": "branch", "cond": cond, "val": False, "line": line}
+
+            true_paths = self._explore_block(
+                node.get("consequent"), current_path + [true_step]
+            )
+
+            if node.get("alternate"):
+                false_paths = self._explore_block(
+                    node.get("alternate"), current_path + [false_step]
+                )
+            else:
+                false_paths = [current_path + [false_step]]
+
+            return true_paths + false_paths
+
+        # ───── LOOP ─────
+        elif t in ("WhileStatement", "ForStatement"):
+            cond = self._extract_condition(node.get("test"))
+
+            enter = current_path + [{"type": "loop", "cond": cond, "val": True, "line": line}]
+            skip = current_path + [{"type": "loop", "cond": cond, "val": False, "line": line}]
+
+            entered = self._explore_block(node.get("body"), enter)
+
+            return entered + [skip]
+
+        # ───── VARIABLE DECLARATION ─────
+        elif t == "VariableDeclaration":
+            steps = []
+            for decl in node.get("declarations", []):
+                name = decl.get("id", {}).get("name")
+                value_node = decl.get("init")
+
+                if name and value_node and value_node.get("type") == "Literal":
+                    value = value_node.get("value")
+                    steps.append({
+                        "type": "constraint",
+                        "cond": f"{name} == {value}",
+                        "line": line
+                    })
+
+            return [current_path + steps]
+
+        # ───── DEFAULT ─────
+        return [current_path + [{"type": "stmt", "node": t, "line": line}]]
+
+    def _explore_block(self, block, path):
+        if not isinstance(block, dict):
+            return [path]
+
+        if block.get("type") == "BlockStatement":
+            paths = [path]
+            for stmt in block.get("body", []):
+                new_paths = []
+                for p in paths:
+                    new_paths.extend(self._explore(stmt, p))
+                    if len(new_paths) > self.max_paths:
+                        new_paths = new_paths[:self.max_paths]
+                paths = new_paths
+            return paths
+
+        return [path]
+
+
+# ─────────────────────────────────────────────
+# JSExtractor
+# ─────────────────────────────────────────────
 
 class JSExtractor:
-    """
-    Extract execution paths from JavaScript/TypeScript using Acorn.
 
-    Strategy:
-    1. Write a temporary Node.js script that uses acorn to parse the file
-    2. Call it via subprocess → get AST as JSON
-    3. Build CFG from AST nodes
-    4. DFS to generate all paths
-    5. Convert to Trajectory objects
-    """
-
-    # AST node types that create branches
-    BRANCH_TYPES = {
-        'IfStatement',
-        'WhileStatement',
-        'ForStatement',
-        'ForInStatement',
-        'ForOfStatement',
-        'DoWhileStatement',
-        'SwitchStatement',
-        'ConditionalExpression',
-        'TryStatement',
-        'CatchClause',
-        'LogicalExpression',    # && / || short-circuit
-    }
-
-    # Node.js script template — acorn parses the file and prints AST as JSON
     NODE_SCRIPT = textwrap.dedent("""
         const acorn = require('acorn');
         const fs = require('fs');
 
-        const filePath = process.argv[2];
-        const isTS = filePath.endsWith('.ts') || filePath.endsWith('.mts');
+        const file = process.argv[2];
+        const src = fs.readFileSync(file, 'utf8');
 
-        let source;
-        try {
-            source = fs.readFileSync(filePath, 'utf8');
-        } catch(e) {
-            process.stderr.write('READ_ERROR: ' + e.message + '\\n');
-            process.exit(1);
-        }
-
-        // Strip TypeScript type annotations for .ts files
-        // (acorn doesn't support TS natively — we strip types before parsing)
-        if (isTS) {
-            source = source
-                .replace(/:\\s*[\\w<>\\[\\]|&,\\s]+(?=[,)=;{])/g, '')  // param types
-                .replace(/<[^>]+>/g, '')                                 // generics
-                .replace(/as\\s+\\w+/g, '')                              // type assertions
-                .replace(/:\\s*\\w+\\s*(?=\\{)/g, '');                  // return types
-        }
-
-        const options = {
+        const ast = acorn.parse(src, {
             ecmaVersion: 2022,
-            sourceType: 'module',   // handles import/export (.mjs)
-            locations: true,        // include line/col info
-            allowHashBang: true,
-            allowImportExportEverywhere: true,
-        };
+            sourceType: 'module',
+            locations: true
+        });
 
-        try {
-            const ast = acorn.parse(source, options);
-            process.stdout.write(JSON.stringify(ast));
-        } catch(e) {
-            process.stderr.write('PARSE_ERROR: ' + e.message + '\\n');
-            process.exit(1);
-        }
+        console.log(JSON.stringify(ast));
     """)
 
-    def __init__(self, max_paths: int = 100):
+    def __init__(self, max_paths=200, timeout_global=120):
         self.max_paths = max_paths
-        self.next_node_id = 0
-        self._check_node_and_acorn()
+        self.timeout_global = timeout_global
 
-    # ------------------------------------------------------------------
-    # Startup check
-    # ------------------------------------------------------------------
-
-    def _check_node_and_acorn(self):
-        """Verify that node and acorn are available"""
-        # Check node
-        try:
-            result = subprocess.run(
-                ['node', '--version'],
-                capture_output=True, text=True, timeout=5
-            )
-            logger.info(f"✅ Node.js found: {result.stdout.strip()}")
-        except FileNotFoundError:
-            raise RuntimeError("❌ Node.js not found. Install it: https://nodejs.org")
-
-        # Check acorn
-        try:
-            result = subprocess.run(
-                ['node', '-e', 'require("acorn"); console.log("ok")'],
-                capture_output=True, text=True, timeout=5
-            )
-            if result.returncode != 0:
-                raise RuntimeError(
-                    "❌ acorn not found. Install it: npm install -g acorn  "
-                    "or: npm install acorn  (in your project)"
-                )
-            logger.info("✅ acorn available")
-        except FileNotFoundError:
-            raise RuntimeError("❌ Node.js not found")
-
-    # ------------------------------------------------------------------
-    # Public entry point
-    # ------------------------------------------------------------------
+    # ─────────────────────────
 
     def extract_paths(self, source_dir: Path) -> List[Trajectory]:
-        """
-        Extract all execution paths from JS/TS source directory.
+        files = list(source_dir.rglob("*.js")) + list(source_dir.rglob("*.ts"))
 
-        Args:
-            source_dir: Directory containing .js / .mjs / .ts files
+        all_traj = []
+        start_time = time.time()
 
-        Returns:
-            List of Trajectory objects
-        """
-        logger.info(f"🔍 Extracting JS/TS paths from {source_dir}")
+        for f in files:
+            if time.time() - start_time > self.timeout_global:
+                logger.warning(f" Budget global atteint ({self.timeout_global}s).")
+                break
+            if len(all_traj) >= self.max_paths:
+                break
 
-        # Collect target files
-        js_files  = list(source_dir.rglob("*.js"))
-        mjs_files = list(source_dir.rglob("*.mjs"))
-        ts_files  = list(source_dir.rglob("*.ts"))
+            logger.info(f"Processing {f.name}")
 
-        # Ignore node_modules, dist, build, test files
-        def _keep(f: Path) -> bool:
-            bad = {'node_modules', 'dist', 'build', '.git',
-                   '__pycache__', '.venv', 'coverage'}
-            return (
-                not any(p in f.parts for p in bad)
-                and 'test' not in f.stem.lower()
-                and '.min.' not in f.name
-            )
-
-        all_files = [f for f in js_files + mjs_files + ts_files if _keep(f)]
-
-        if not all_files:
-            logger.warning("No JS/TS source files found")
-            return []
-
-        logger.info(
-            f"Found {len(js_files)} .js, "
-            f"{len(mjs_files)} .mjs, "
-            f"{len(ts_files)} .ts files "
-            f"({len(all_files)} after filtering)"
-        )
-
-        all_trajectories = []
-
-        for source_file in all_files:
-            logger.info(f"Processing {source_file.name}...")
             try:
-                trajectories = self._extract_from_file(source_file)
-                all_trajectories.extend(trajectories)
-                logger.info(f"  → {len(trajectories)} paths extracted")
+                source_text = f.read_text(encoding="utf-8")
             except Exception as e:
-                logger.error(f"Error processing {source_file}: {e}")
+                logger.error(f"Error reading {f.name}: {e}")
                 continue
 
-        logger.info(f"✅ Total JS/TS paths extracted: {len(all_trajectories)}")
+            crawler = JSPathCrawler(source_text, max_paths=self.max_paths)
 
-        if len(all_trajectories) > self.max_paths:
-            logger.info(f"Limiting to {self.max_paths} paths")
-            all_trajectories = all_trajectories[:self.max_paths]
+            ast = self._get_ast(f)
+            if not ast:
+                continue
 
-        return all_trajectories
+            #  inclure programme global
+            functions = self._find_functions(ast)
+            functions.append(ast)
 
-    # ------------------------------------------------------------------
-    # AST → JSON via subprocess
-    # ------------------------------------------------------------------
+            for func in functions:
+                if time.time() - start_time > self.timeout_global:
+                    break
+                if len(all_traj) >= self.max_paths:
+                    break
 
-    def _get_ast(self, file_path: Path) -> dict | None:
-        """
-        Run the Node.js acorn script on file_path.
-        Returns parsed AST dict, or None on failure.
-        """
-        # Write Node script to a temp file
-        with tempfile.NamedTemporaryFile(
-            suffix='.js', mode='w', delete=False, encoding='utf-8'
-        ) as tmp:
+                raw_paths = crawler.explore_function(func)
+
+                for i, path in enumerate(raw_paths):
+                    if time.time() - start_time > self.timeout_global:
+                        break
+                    if len(all_traj) >= self.max_paths:
+                        break
+
+                    constraints = _build_constraints_js(path)
+
+                    feasible, smt = _check_feasibility_z3(constraints)
+                    if not feasible:
+                        continue
+
+                    basic_blocks = []
+                    branches = set()
+                    prev_line = None
+                    for step in path:
+                        line = step.get("line", 0)
+                        basic_blocks.append(line)
+                        if prev_line is not None and step["type"] in ("branch", "loop"):
+                            branches.add((prev_line, line))
+                        prev_line = line
+
+                    traj = Trajectory(
+                        path_id=f"js_{i}",
+                        basic_blocks=basic_blocks,
+                        path_condition=" AND ".join(constraints) if constraints else "TRUE",
+                        branches_covered=branches,
+                        constraints=constraints,
+                        cost=float(len(path)),
+                        is_feasible=True
+                    )
+
+                    all_traj.append(traj)
+                    self._print_trajectory(traj, i, smt)
+
+        return all_traj[:self.max_paths]
+
+    # ─────────────────────────
+
+    def _get_ast(self, file_path: Path):
+        with tempfile.NamedTemporaryFile(suffix=".js", delete=False, mode="w") as tmp:
             tmp.write(self.NODE_SCRIPT)
             tmp_path = tmp.name
 
         try:
             result = subprocess.run(
-                ['node', tmp_path, str(file_path)],
+                ["node", tmp_path, str(file_path)],
                 capture_output=True,
-                text=True,
-                timeout=30
+                text=True
             )
 
             if result.returncode != 0:
-                logger.warning(
-                    f"acorn error on {file_path.name}: "
-                    f"{result.stderr.strip()[:200]}"
-                )
+                logger.error(result.stderr)
                 return None
 
             return json.loads(result.stdout)
 
-        except subprocess.TimeoutExpired:
-            logger.error(f"Timeout parsing {file_path.name}")
-            return None
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON from acorn for {file_path.name}: {e}")
-            return None
         finally:
-            Path(tmp_path).unlink(missing_ok=True)  # clean up temp file
+            Path(tmp_path).unlink(missing_ok=True)
 
-    # ------------------------------------------------------------------
-    # File-level extraction
-    # ------------------------------------------------------------------
+    # ─────────────────────────
 
-    def _extract_from_file(self, file_path: Path) -> List[Trajectory]:
-        """Extract paths from a single JS/TS file"""
-
-        ast = self._get_ast(file_path)
-        if ast is None:
-            return []
-
-        trajectories = []
-
-        # Collect all function nodes from the AST
-        functions = self._find_functions(ast)
-        logger.info(f"  Found {len(functions)} functions")
-
-        for func in functions:
-            func_name = self._get_func_name(func)
-            logger.debug(f"    Analyzing: {func_name}")
-
-            cfg = self._build_cfg(func)
-            paths = self._generate_paths_from_cfg(cfg, func_name)
-
-            for i, path in enumerate(paths):
-                traj = self._path_to_trajectory(path, func_name, i)
-                trajectories.append(traj)
-
-        return trajectories
-
-    # ------------------------------------------------------------------
-    # AST traversal helpers
-    # ------------------------------------------------------------------
-
-    def _find_functions(self, node: dict) -> List[dict]:
-        """
-        Recursively find all function nodes in the AST.
-        Covers: FunctionDeclaration, FunctionExpression, ArrowFunctionExpression
-        """
+    def _find_functions(self, node):
         results = []
-        func_types = {
-            'FunctionDeclaration',
-            'FunctionExpression',
-            'ArrowFunctionExpression',
-        }
 
         def walk(n):
             if not isinstance(n, dict):
                 return
-            if n.get('type') in func_types:
+
+            if n.get("type") in (
+                "FunctionDeclaration",
+                "FunctionExpression",
+                "ArrowFunctionExpression"
+            ):
                 results.append(n)
+
             for v in n.values():
                 if isinstance(v, dict):
                     walk(v)
                 elif isinstance(v, list):
-                    for item in v:
-                        walk(item)
+                    for i in v:
+                        walk(i)
 
         walk(node)
         return results
 
-    def _get_func_name(self, func_node: dict) -> str:
-        """Extract function name (or 'anonymous' for arrow/unnamed functions)"""
-        node_type = func_node.get('type', '')
+    # ─────────────────────────
 
-        if node_type == 'FunctionDeclaration':
-            id_node = func_node.get('id')
-            if id_node:
-                return id_node.get('name', 'anonymous')
 
-        if node_type == 'FunctionExpression':
-            id_node = func_node.get('id')
-            if id_node:
-                return id_node.get('name', 'anonymous')
 
-        return 'anonymous'
+    # ─────────────────────────
 
-    def _get_location(self, node: dict) -> str:
-        """Extract line:col from acorn location info"""
-        loc = node.get('loc')
-        if loc and 'start' in loc:
-            return f"{loc['start']['line']}:{loc['start']['column']}"
-        return 'unknown'
+    def _print_trajectory(self, traj, idx, smt):
+        print("\n──── JS TRAJECTORY ────")
+        print("ID:", traj.path_id)
+        print("SMT:", smt)
+        print("Cost:", traj.cost)
+        print("Pi(t):", traj.path_condition)
+        print("Constraints:", traj.constraints)
 
-    # ------------------------------------------------------------------
-    # CFG construction
-    # ------------------------------------------------------------------
 
-    def _build_cfg(self, func_node: dict) -> List[CFGNode]:
-        """Build Control Flow Graph from a function's AST node"""
-        cfg: List[CFGNode] = []
-        self.next_node_id = 0
+# ─────────────────────────────────────────────
 
-        def create_node(ast_node: dict, is_branch: bool = False) -> int:
-            node_id = self.next_node_id
-            self.next_node_id += 1
-            cfg.append(CFGNode(
-                node_id=node_id,
-                kind=ast_node.get('type', 'Unknown'),
-                location=self._get_location(ast_node),
-                children=[],
-                is_branch=is_branch,
-            ))
-            return node_id
+def _build_constraints_js(path):
+    constraints = []
+    for step in path:
+        if step["type"] == "constraint":
+            constraints.append(step["cond"])
 
-        def link(parent_id: int, child_id: int):
-            cfg[parent_id].children.append(child_id)
-
-        def visit(node, parent_id=None) -> int | None:
-            if not isinstance(node, dict):
-                return None
-
-            node_type = node.get('type', '')
-            is_branch = node_type in self.BRANCH_TYPES
-            current_id = create_node(node, is_branch)
-
-            if parent_id is not None:
-                link(parent_id, current_id)
-
-            # --- Structured traversal per node type ---
-
-            if node_type == 'IfStatement':
-                # test → consequent → [alternate]
-                visit(node.get('test', {}), current_id)
-                visit(node.get('consequent', {}), current_id)
-                if node.get('alternate'):
-                    visit(node['alternate'], current_id)
-
-            elif node_type in ('WhileStatement', 'DoWhileStatement'):
-                visit(node.get('test', {}), current_id)
-                visit(node.get('body', {}), current_id)
-
-            elif node_type == 'ForStatement':
-                for key in ('init', 'test', 'update', 'body'):
-                    if node.get(key):
-                        visit(node[key], current_id)
-
-            elif node_type in ('ForInStatement', 'ForOfStatement'):
-                visit(node.get('left', {}), current_id)
-                visit(node.get('right', {}), current_id)
-                visit(node.get('body', {}), current_id)
-
-            elif node_type == 'SwitchStatement':
-                visit(node.get('discriminant', {}), current_id)
-                for case in node.get('cases', []):
-                    visit(case, current_id)
-
-            elif node_type == 'TryStatement':
-                visit(node.get('block', {}), current_id)
-                if node.get('handler'):
-                    visit(node['handler'], current_id)
-                if node.get('finalizer'):
-                    visit(node['finalizer'], current_id)
-
-            elif node_type == 'BlockStatement':
-                for stmt in node.get('body', []):
-                    visit(stmt, current_id)
-
-            elif node_type in (
-                'FunctionDeclaration', 'FunctionExpression',
-                'ArrowFunctionExpression'
-            ):
-                # Visit body only (params are not control-flow-relevant here)
-                body = node.get('body')
-                if body:
-                    visit(body, current_id)
-
+        elif step["type"] in ("branch", "loop"):
+            if step["val"]:
+                constraints.append(step["cond"])
             else:
-                # Generic: visit all dict/list children
-                for v in node.values():
-                    if isinstance(v, dict) and v.get('type'):
-                        visit(v, current_id)
-                    elif isinstance(v, list):
-                        for item in v:
-                            if isinstance(item, dict) and item.get('type'):
-                                visit(item, current_id)
+                constraints.append(f"NOT ({step['cond']})")
 
-            return current_id
-
-        # Start from function body
-        body = func_node.get('body')
-        if body:
-            visit(body)
-
-        return cfg
-
-    # ------------------------------------------------------------------
-    # DFS path generation (identical logic to C/Java extractors)
-    # ------------------------------------------------------------------
-
-    def _generate_paths_from_cfg(
-        self, cfg: List[CFGNode], func_name: str
-    ) -> List[List[CFGNode]]:
-        """Generate all paths through CFG using DFS"""
-        if not cfg:
-            return []
-
-        paths: List[List[int]] = []
-        max_depth = 50
-
-        def dfs(node_id: int, current_path: List[int],
-                visited: Set[int], depth: int):
-            if depth > max_depth or len(paths) >= self.max_paths:
-                return
-
-            node = cfg[node_id]
-            current_path.append(node_id)
-
-            if not node.children:
-                paths.append(current_path.copy())
-                current_path.pop()
-                return
-
-            if node.is_branch:
-                for child_id in node.children:
-                    if child_id not in visited:
-                        dfs(child_id, current_path,
-                            visited | {child_id}, depth + 1)
-            else:
-                for child_id in node.children:
-                    if child_id not in visited:
-                        dfs(child_id, current_path,
-                            visited | {node_id}, depth + 1)
-
-            current_path.pop()
-
-        dfs(0, [], set(), 0)
-
-        return [[cfg[nid] for nid in path] for path in paths]
-
-    # ------------------------------------------------------------------
-    # Path → Trajectory
-    # ------------------------------------------------------------------
-
-    def _path_to_trajectory(
-        self, path: List[CFGNode], func_name: str, path_idx: int
-    ) -> Trajectory:
-        """Convert a CFG path to a Trajectory object"""
-        basic_blocks = [node.node_id for node in path]
-
-        branches: Set[tuple] = set()
-        for i in range(len(path) - 1):
-            if path[i].is_branch:
-                branches.add((path[i].node_id, path[i + 1].node_id))
-
-        constraints = [
-            f"{node.kind}@{node.location}"
-            for node in path if node.is_branch
-        ]
-
-        return Trajectory(
-            path_id=f"js_{func_name}_path_{path_idx:03d}",
-            basic_blocks=basic_blocks,
-            path_condition=f"{func_name}_path_{path_idx}",
-            branches_covered=branches,
-            constraints=constraints,
-            cost=float(len(path)),
-            is_feasible=True
-        )
-
-
-def extract_js_trajectories(
-    source_dir: Path, max_paths: int = 100
-) -> List[Trajectory]:
-    """Convenience function to extract trajectories from JS/TS code"""
-    extractor = JSExtractor(max_paths=max_paths)
-    return extractor.extract_paths(source_dir)
+    return constraints

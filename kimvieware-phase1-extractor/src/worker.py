@@ -57,9 +57,9 @@ def process_job(message: dict):
         raise ValueError(f"Unsupported language: {language}")
 
     logger.info(f"Using {strategy.get_language()} extractor")
-    trajectories = strategy.extract_paths(sut_path, max_paths=100)
+    trajectories = strategy.extract_paths(sut_path, max_paths=1000)
 
-    logger.info(f"✅ Extracted {len(trajectories)} trajectories")
+    logger.info(f" Extracted {len(trajectories)} trajectories")
 
     result = {
         'job_id': job_id,
@@ -86,7 +86,8 @@ def process_job(message: dict):
     }
 
     send_to_queue('extraction.completed', result)
-    logger.info(f"✅ Job {job_id[:8]} completed - sent to Phase 2")
+    send_to_queue('phase.updates', result)
+    logger.info(f" Job {job_id[:8]} completed - sent to Phase 2")
 
 
 def callback(ch, method, properties, body):
@@ -96,13 +97,13 @@ def callback(ch, method, properties, body):
         process_job(message)
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
-        logger.error(f"❌ Error in callback: {e}")
+        logger.error(f" Error in callback: {e}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
 def main():
     logger.info("=" * 60)
-    logger.info("🚀 Phase 1 Worker - Path Extraction (Strategy Pattern)")
+    logger.info(" Phase 1 Worker - Path Extraction (Strategy Pattern)")
     logger.info("=" * 60)
 
     connection = get_rabbitmq_connection()
@@ -112,7 +113,7 @@ def main():
     channel.basic_qos(prefetch_count=1)
     channel.basic_consume(queue='validation.completed', on_message_callback=callback)
 
-    logger.info("✅ Worker ready - waiting for jobs...")
+    logger.info(" Worker ready - waiting for jobs...")
     try:
         channel.start_consuming()
     except KeyboardInterrupt:

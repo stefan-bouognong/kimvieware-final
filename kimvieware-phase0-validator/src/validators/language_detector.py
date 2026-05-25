@@ -83,7 +83,7 @@ class JavaStrategy(LanguageStrategy):
 
 
 # =========================================================
-# ⚙️ C / C++
+# C / C++
 # =========================================================
 class CppStrategy(LanguageStrategy):
 
@@ -108,7 +108,7 @@ class CppStrategy(LanguageStrategy):
 
 
 # =========================================================
-# 🌐 JS / TS
+#  JS / TS
 # =========================================================
 class JavaScriptStrategy(LanguageStrategy):
 
@@ -153,7 +153,7 @@ class StrategyRegistry:
 
 
 # =========================================================
-# 🚀 DETECTOR (OCP CLEAN + ROBUST)
+#  DETECTOR (OCP CLEAN + ROBUST)
 # =========================================================
 class LanguageDetector:
 

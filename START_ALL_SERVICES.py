@@ -13,21 +13,21 @@ services = [
 
 processes = []
 
-print("🚀 Lancement des services KIMVIware...")
+print(" Lancement des services KIMVIware...")
 
 for name, path in services:
     log_file = f"log_{name.replace(' ', '_').lower()}.txt"
-    print(f"🎬 Démarrage de {name}...")
+    print(f" Démarrage de {name}...")
     try:
         with open(log_file, "w") as f:
             p = subprocess.Popen(["python3", path], stdout=f, stderr=f)
             processes.append((name, p, log_file))
         time.sleep(2) # Attente entre les lancements
     except Exception as e:
-        print(f"❌ Erreur lors du lancement de {name}: {e}")
+        print(f" Erreur lors du lancement de {name}: {e}")
 
-print("\n✅ Tous les services ont été lancés en arrière-plan.")
-print("🔍 Vérification du statut dans 5 secondes...")
+print("\n Tous les services ont été lancés en arrière-plan.")
+print(" Vérification du statut dans 5 secondes...")
 time.sleep(5)
 
 for name, p, log in processes:

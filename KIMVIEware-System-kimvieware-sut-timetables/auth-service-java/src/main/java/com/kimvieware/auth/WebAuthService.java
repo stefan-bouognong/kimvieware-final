@@ -66,7 +66,7 @@ public class WebAuthService {
             }
         });
 
-        System.out.println("🚀 Java Auth Web Service started on port " + port);
+        System.out.println(" Java Auth Web Service started on port " + port);
         server.setExecutor(null);
         server.start();
     }

@@ -32,7 +32,7 @@ class MicroserviceBase(ABC):
 
         self.phase_update_queue = os.getenv('PHASE_UPDATE_QUEUE', 'phase.updates')
 
-        self.logger.info(f"🚀 {service_name} initialized")
+        self.logger.info(f" {service_name} initialized")
     
     def _connect(self):
         """Connect to RabbitMQ"""
@@ -121,11 +121,11 @@ class MicroserviceBase(ABC):
     
     def start(self):
         """Start consuming"""
-        self.logger.info(f"🎬 Starting {self.service_name}...")
+        self.logger.info(f" Starting {self.service_name}...")
         self._connect()
         self.channel.basic_qos(prefetch_count=1)
         self.channel.basic_consume(queue=self.input_queue, on_message_callback=self._callback)
-        self.logger.info(f"✨ Ready! Waiting on '{self.input_queue}'...")
+        self.logger.info(f" Ready! Waiting on '{self.input_queue}'...")
         try:
             self.channel.start_consuming()
         except KeyboardInterrupt:

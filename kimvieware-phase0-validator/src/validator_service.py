@@ -48,7 +48,7 @@ class ValidatorService(MicroserviceBase):
         self.detector = LanguageDetector(registry)
 
     # =========================================================
-    # 🚀 PROCESS MESSAGE
+    #  PROCESS MESSAGE
     # =========================================================
     def process_message(self, message: dict) -> dict:
 
@@ -84,7 +84,7 @@ class ValidatorService(MicroserviceBase):
         if lang_info['language'] == 'unknown':
             return self._rejection(job_id, "Unsupported language")
 
-        self.logger.info(f"[{job_id}] 🔍 Language: {lang_info['language']}")
+        self.logger.info(f"[{job_id}]  Language: {lang_info['language']}")
 
         if lang_info.get('framework'):
             self.logger.info(f"[{job_id}] 🏗️ Framework: {lang_info['framework']}")
@@ -134,7 +134,7 @@ class ValidatorService(MicroserviceBase):
         }
 
     # =========================================================
-    # ❌ REJECTION
+    #  REJECTION
     # =========================================================
     def _rejection(self, job_id: str, reason: str) -> dict:
 
@@ -169,7 +169,7 @@ class ValidatorService(MicroserviceBase):
 
 
 # =========================================================
-# 🚀 MAIN
+#  MAIN
 # =========================================================
 if __name__ == "__main__":
     service = ValidatorService()

@@ -50,12 +50,12 @@ class MutationTester:
         # Run MutPy (simplified - full MutPy requires complex setup)
         # For demo, we simulate mutation testing results
         
-        print(f"\n🔬 Generating mutants...")
+        print(f"\n Generating mutants...")
         
         # Simulate mutation analysis
         stats = self._simulate_mutation_testing(sut_path, len(target_modules))
         
-        print(f"\n📊 Mutation Testing Results:")
+        print(f"\n Mutation Testing Results:")
         print(f"   Total mutants: {stats['total_mutants']}")
         print(f"   Killed: {stats['killed']}")
         print(f"   Survived: {stats['survived']}")

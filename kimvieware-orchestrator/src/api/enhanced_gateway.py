@@ -62,13 +62,19 @@ def _start_message_consumers():
         except Exception as e:
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
-    try:
-        connection = create_connection(logger=logger)
-        channel = connection.channel()
-        declare_queue(channel, 'phase.updates')
-        channel.basic_consume(queue='phase.updates', on_message_callback=callback)
-        channel.start_consuming()
-    except: pass
+    while True:
+        try:
+            import time
+            connection = create_connection(logger=logger)
+            channel = connection.channel()
+            declare_queue(channel, 'phase.updates')
+            channel.basic_consume(queue='phase.updates', on_message_callback=callback)
+            logger.info(" Orchestrator Consumer connected to 'phase.updates'")
+            channel.start_consuming()
+        except Exception as e:
+            logger.error(f"Orchestrator Consumer disconnected: {e}. Retrying in 5s...")
+            import time
+            time.sleep(5)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

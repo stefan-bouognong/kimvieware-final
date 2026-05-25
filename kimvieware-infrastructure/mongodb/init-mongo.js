@@ -19,4 +19,4 @@ db.trajectories.createIndex({ "phase": 1 });
 db.results.createIndex({ "job_id": 1 }, { unique: true });
 db.results.createIndex({ "timestamp": 1 });
 
-print("✅ KIMVIEware MongoDB initialized successfully");
+print(" KIMVIEware MongoDB initialized successfully");

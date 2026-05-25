@@ -1,6 +1,6 @@
 # Phase 1 Extractor — Status et Configuration
 
-## ✅ État 100% Opérationnel
+##  État 100% Opérationnel
 
 Tous les extracteurs (Python, C, Java) sont **fonctionnels et configurés** pour extraire les trajectoires d'exécution.
 
@@ -8,19 +8,19 @@ Tous les extracteurs (Python, C, Java) sont **fonctionnels et configurés** pour
 
 | Langage | Extracteur | Mode Primaire | Mode Fallback | État |
 |---------|-----------|---------------|----------------|------|
-| **Python** | PythonExtractor | AST + Z3 | — | ✅ **Complet** |
-| **C/C++** | CExtractor | ~~KLEE~~ + Z3 | libclang + Z3 | ✅ **Fallback Actif** |
-| **Java** | JavaExtractor | ~~JBSE~~ + Z3 | javalang + Z3 | ✅ **Fallback Actif** |
+| **Python** | PythonExtractor | AST + Z3 | — |  **Complet** |
+| **C/C++** | CExtractor | ~~KLEE~~ + Z3 | libclang + Z3 |  **Fallback Actif** |
+| **Java** | JavaExtractor | ~~JBSE~~ + Z3 | javalang + Z3 |  **Fallback Actif** |
 
-## 📊 Résultats Observés
+##  Résultats Observés
 
 Extraction réussie sur les services de test :
 
-- **job_0016** (Python auth-service) : ✅ 20 trajectoires extraites
-- **job_0020** (C auth-service) : ✅ 347 trajectoires extraites  
-- **job_0021** (Java auth-service) : ✅ 13 trajectories extraites (basic)
+- **job_0016** (Python auth-service) :  20 trajectoires extraites
+- **job_0020** (C auth-service) :  347 trajectoires extraites  
+- **job_0021** (Java auth-service) :  13 trajectories extraites (basic)
 
-## 🔧 Configuration Détaillée
+##  Configuration Détaillée
 
 ### 1. Python Extractor
 - **Module** : `extractors.python_extractor.PythonExtractor`
@@ -55,17 +55,17 @@ Extraction réussie sur les services de test :
 
 ```
 Python Packages:
-  ✅ z3-solver==4.10.2.0      — SMT Solver (vérification faisabilité)
-  ✅ setuptools==67.8.0        — Build tools (requis par Z3)
-  ✅ libclang==18.1.1          — Bindings Python pour libclang
-  ✅ javalang==0.13.0          — Parser Java AST
-  ✅ angr==9.2.77              — Binary analysis framework
-  ✅ networkx==3.2.1           — Graph algorithms
+   z3-solver==4.10.2.0      — SMT Solver (vérification faisabilité)
+   setuptools==67.8.0        — Build tools (requis par Z3)
+   libclang==18.1.1          — Bindings Python pour libclang
+   javalang==0.13.0          — Parser Java AST
+   angr==9.2.77              — Binary analysis framework
+   networkx==3.2.1           — Graph algorithms
 
 System Packages:
-  ✅ llvm-18                   — LLVM infrastructure
-  ✅ clang-18                  — C/C++ compiler
-  ✅ openjdk-17-jdk            — Java compiler et runtime
+   llvm-18                   — LLVM infrastructure
+   clang-18                  — C/C++ compiler
+   openjdk-17-jdk            — Java compiler et runtime
 ```
 
 ## 🎯 Utilisation
@@ -111,30 +111,30 @@ KLEE et JBSE sont **optionnels** et offrent une exploration symbolique plus pous
 
 **Pour installer KLEE ou JBSE** : voir [ADVANCED_SETUP.md](ADVANCED_SETUP.md)
 
-## 🚀 Améliorations Appliquées
+##  Améliorations Appliquées
 
-### Phase 1 : Correction Imports ✅
+### Phase 1 : Correction Imports 
 - Création de `base_extractor.py` (classe abstraite)
 - Création de `__init__.py` (package initialization)
 - Import résolus pour tous les extracteurs
 
-### Phase 2 : Installation Z3 ✅
+### Phase 2 : Installation Z3 
 - Installation de `z3-solver` et `setuptools`
 - Vérification et activation du SMT Solver
 - Résultats : `SAT (z3 unavailable)` → `SAT`
 
-### Phase 3 : Simplification Logique ✅
+### Phase 3 : Simplification Logique 
 - Implémentation de `_simplify_logical_formula()`
 - Transformation `NOT (not x)` → `x`
 - Transformation `NOT (A or B)` → `NOT A AND NOT B`
 - Résultats : Formules plus lisibles
 
-### Phase 4 : Configuration C/Java ✅
+### Phase 4 : Configuration C/Java 
 - Vérification libclang + javalang
 - Installation des compilateurs (clang-18, javac)
 - Configuration fallback gracieux
 
-## 📋 Checklist de Maintenance
+##  Checklist de Maintenance
 
 ```
 □ Daily
@@ -153,7 +153,7 @@ KLEE et JBSE sont **optionnels** et offrent une exploration symbolique plus pous
   □ Profiler performance extracteurs
 ```
 
-## 🔍 Dépannage
+##  Dépannage
 
 ### Le service démarre mais n'extrait rien
 
@@ -191,4 +191,4 @@ C'est normal en fallback mode basique. Les extracteurs détectent seulement les 
 
 ---
 
-**Statut Final** : ✅ **Système entièrement opérationnel pour extraction de trajectoires Python, C et Java**
+**Statut Final** :  **Système entièrement opérationnel pour extraction de trajectoires Python, C et Java**

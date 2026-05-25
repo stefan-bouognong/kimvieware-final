@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 def generate_scientific_report():
-    print("📊 Génération du rapport d'évaluation pour le mémoire...")
+    print(" Génération du rapport d'évaluation pour le mémoire...")
     
     # Chemins des données
     integration_file = "integration_report.json"
@@ -77,7 +77,7 @@ def generate_scientific_report():
                 f.write(f"- **{k}**: {v}\n")
             f.write("\n")
 
-    print("\n✅ Rapports générés :")
+    print("\n Rapports générés :")
     print("   - SCIENTIFIC_EVALUATION_REPORT.json (Données brutes)")
     print("   - EVALUATION_SUMMARY.md (Prêt pour le mémoire)")
 
