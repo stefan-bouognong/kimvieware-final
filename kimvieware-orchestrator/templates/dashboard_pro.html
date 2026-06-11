@@ -1502,9 +1502,9 @@
                         </div>
                         <div class="info-grid" id="p0-content">
                             <div class="info-item"><div class="info-item-label">Langage</div><div class="info-item-value" id="p0-lang">—</div></div>
-                            <div class="info-item"><div class="info-item-label">Framework</div><div class="info-item-value" id="p0-framework">—</div></div>
-                            <!-- <div class="info-item"><div class="info-item-label">Fichiers analysés</div><div class="info-item-value" id="p0-files">—</div></div> -->
-                            <!-- <div class="info-item"><div class="info-item-label">Checksum</div><div class="info-item-value mono" id="p0-checksum">—</div></div> -->
+                            <!-- <div class="info-item"><div class="info-item-label">Framework</div><div class="info-item-value" id="p0-framework">—</div></div> -->
+                            <div class="info-item"><div class="info-item-label">Fichiers analysés</div><div class="info-item-value" id="p0-files">—</div></div>
+                            <div class="info-item"><div class="info-item-label">Checksum</div><div class="info-item-value mono" id="p0-checksum">—</div></div>
                         </div>
                     </div>
                     <div class="modal-panel" id="modal-p1">
@@ -1521,10 +1521,10 @@
                                 <div class="metric-box-val" style="color:var(--accent-blue)" id="p1-branches">—</div>
                                 <div class="metric-box-label">Points de branchement</div>
                             </div>
-                            <div class="metric-box">
+                          `  <!-- <div class="metric-box">
                                 <div class="metric-box-val" style="color:var(--accent-purple)" id="p1-funcs">—</div>
                                 <div class="metric-box-label">Fonctions couvertes</div>
-                            </div>
+                            </div>` -->
                         </div>
                         <div class="trajectory-log" id="p1-trajectories">
                             <div style="color:var(--text-muted);text-align:center;padding:20px">Aucune trajectoire</div>
@@ -1829,7 +1829,7 @@
             setRefreshing(true);
             const r = await fetch('/api/jobs');
             const d = await r.json();
-            const jobs = [...d.jobs].reverse();
+            const jobs = d.jobs;
 
             document.getElementById('jobs-table-count').textContent = jobs.length + ' enregistrement(s)';
             document.getElementById('jobs-count-badge').textContent = jobs.length;
@@ -1872,6 +1872,19 @@
     /* ================================================================
        VIEW JOB DETAILS
     ================================================================ */
+    function safeText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+    function safeHtml(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = val;
+    }
+    function safeHref(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.href = val;
+    }
+
     async function viewJobDetails(id) {
         try {
             const r = await fetch('/api/jobs/' + id);
@@ -1879,76 +1892,80 @@
             App.currentJob = j;
 
             // Header
-            document.getElementById('modalJobId').textContent = id;
+            safeText('modalJobId', id);
 
             // Phase 0
-            document.getElementById('p0-lang').textContent      = j.sut_info?.language || '—';
-            document.getElementById('p0-framework').textContent = j.sut_info?.framework || 'Standard';
-            document.getElementById('p0-files').textContent     = j.sut_info?.files_count ?? '—';
-            document.getElementById('p0-checksum').textContent  = j.sut_info?.checksum || '—';
+            safeText('p0-lang', j.sut_info?.language || '—');
+            safeText('p0-framework', j.sut_info?.framework || 'Standard');
+            safeText('p0-files', j.sut_info?.files_count ?? '—');
+            safeText('p0-checksum', j.sut_info?.checksum || '—');
 
             // Phase 1
             const trajs = j.trajectories || [];
-            document.getElementById('p1-total').textContent   = j.extraction_count || 0;
-            document.getElementById('p1-branches').textContent = j.sut_info?.branch_points ?? trajs.reduce((a,t) => a + (t.branches_covered?.length||0), 0);
-            document.getElementById('p1-funcs').textContent   = j.sut_info?.functions ?? '—';
-            document.getElementById('p1-trajectories').innerHTML = trajs.length
+            safeText('p1-total', j.extraction_count || 0);
+            safeText('p1-branches', j.sut_info?.branch_points ?? trajs.reduce((a,t) => a + (t.branches_covered?.length||0), 0));
+            safeText('p1-funcs', j.sut_info?.functions ?? '—');
+            safeHtml('p1-trajectories', trajs.length
                 ? trajs.slice(0, 15).map(t => `
                     <div class="traj-entry">
                         <span class="traj-id">${t.path_id?.slice(-10) || '—'}</span>
                         <span class="traj-cond">${t.path_condition || 'ø'}</span>
                     </div>`).join('')
-                : '<div style="color:var(--text-muted);text-align:center;padding:20px">Aucune trajectoire extraite</div>';
+                : '<div style="color:var(--text-muted);text-align:center;padding:20px">Aucune trajectoire extraite</div>');
 
             // Phase 2
             const init = j.extraction_count || 0;
             const red  = j.sgats_stats?.reduced_count ?? j.trajectories_count ?? trajs.length;
             const gain = j.sgats_stats ? Math.round(j.sgats_stats.reduction_rate * 100) : (init ? Math.round((1 - red/init)*100) : 0);
-            document.getElementById('p2-initial').textContent = init || '—';
-            document.getElementById('p2-reduced').textContent = red || '—';
-            document.getElementById('p2-gain').textContent    = gain ? gain + '%' : '—';
-            document.getElementById('p2-log').innerHTML = trajs.length
+            safeText('p2-initial', init || '—');
+            safeText('p2-reduced', red || '—');
+            safeText('p2-gain', gain ? gain + '%' : '—');
+            safeHtml('p2-log', trajs.length
                 ? trajs.slice(0, 10).map(t => `
                     <div class="traj-entry">
                         <span class="traj-id">KEPT</span>
                         <span class="traj-cond">${t.path_id?.slice(-12) || '?'} — unicité sémantique conservée</span>
                     </div>`).join('')
-                : '<div style="color:var(--text-muted);text-align:center;padding:20px">Journal vide</div>';
+                : '<div style="color:var(--text-muted);text-align:center;padding:20px">Journal vide</div>');
 
             // Phase 3
             const evo = j.evopath_stats || {};
-            document.getElementById('p3-fitness').textContent = evo.best_fitness != null ? evo.best_fitness.toFixed(4) : '—';
-            document.getElementById('p3-gen').textContent     = evo.generations || '—';
-            document.getElementById('p3-red').textContent     = evo.cost_reduction != null ? Math.round(evo.cost_reduction*100) + '%' : '—';
-            document.getElementById('p3-suite').innerHTML = trajs.length
+            safeText('p3-fitness', evo.best_fitness != null ? evo.best_fitness.toFixed(4) : '—');
+            safeText('p3-gen', evo.generations || '—');
+            safeText('p3-red', evo.cost_reduction != null ? Math.round(evo.cost_reduction*100) + '%' : '—');
+            safeHtml('p3-suite', trajs.length
                 ? trajs.slice(0, 10).map(t => `
                     <div class="traj-entry">
                         <span class="traj-id" style="color:var(--accent-amber)">BEST</span>
                         <span class="traj-cond">[${t.path_id?.slice(-8)||'?'}] cost: ${(t.cost||0).toFixed(2)} | branches: ${t.branches_covered?.length || 0}</span>
                     </div>`).join('')
-                : '<div style="color:var(--text-muted);text-align:center;padding:20px">Suite optimale vide</div>';
+                : '<div style="color:var(--text-muted);text-align:center;padding:20px">Suite optimale vide</div>');
 
             // Phase 4
             const mut = j.mutation_stats || {};
             const score = mut.mutation_score || 0;
-            document.getElementById('p4-score').textContent     = score ? score + '%' : '—';
-            document.getElementById('p4-killed').textContent    = mut.killed ?? '—';
-            document.getElementById('p4-survived').textContent  = mut.survived ?? '—';
-            document.getElementById('p4-total').textContent     = mut.total_mutants ?? '—';
-            document.getElementById('p4-lines').textContent     = mut.analyzed_lines ?? '—';
-            document.getElementById('p4-complexity').textContent = mut.complexity_index ?? '—';
-            document.getElementById('p4-report-link').href = '/report/' + id;
+            safeText('p4-score', score ? score + '%' : '—');
+            safeText('p4-killed', mut.killed ?? '—');
+            safeText('p4-survived', mut.survived ?? '—');
+            safeText('p4-total', mut.total_mutants ?? '—');
+            safeText('p4-lines', mut.analyzed_lines ?? '—');
+            safeText('p4-complexity', mut.complexity_index ?? '—');
+            safeHref('p4-report-link', '/report/' + id);
 
             const qualBadge = document.getElementById('p4-quality-badge');
-            if (score >= 80) { qualBadge.textContent = 'EXCELLENT'; qualBadge.className = 'status-badge completed'; }
-            else if (score > 0) { qualBadge.textContent = 'ACCEPTABLE'; qualBadge.className = 'status-badge submitted'; }
-            else { qualBadge.textContent = 'EN ATTENTE'; qualBadge.className = 'status-badge extracted'; }
+            if (qualBadge) {
+                if (score >= 80) { qualBadge.textContent = 'EXCELLENT'; qualBadge.className = 'status-badge completed'; }
+                else if (score > 0) { qualBadge.textContent = 'ACCEPTABLE'; qualBadge.className = 'status-badge submitted'; }
+                else { qualBadge.textContent = 'EN ATTENTE'; qualBadge.className = 'status-badge extracted'; }
+            }
 
             // Reset to phase 0
             document.querySelectorAll('.modal-nav-item').forEach(n => n.classList.remove('active'));
             document.querySelectorAll('.modal-panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.modal-nav-item')[0].classList.add('active');
-            document.getElementById('modal-p0').classList.add('active');
+            const firstNavItem = document.querySelectorAll('.modal-nav-item')[0];
+            if (firstNavItem) firstNavItem.classList.add('active');
+            const p0Panel = document.getElementById('modal-p0');
+            if (p0Panel) p0Panel.classList.add('active');
 
             openModal();
         } catch(e) { console.error('Job detail error:', e); }

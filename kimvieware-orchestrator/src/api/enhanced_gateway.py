@@ -148,6 +148,35 @@ def view_report(request: Request, job_id: str):
         logger.error(f"Error rendering report for {job_id}: {e}")
         return JSONResponse(status_code=500, content={"error": f"Internal Server Error: {str(e)}"})
 
+def _extract_to_stryker_executions(file_path: Path, job_id: str):
+    import zipfile
+    import tarfile
+    try:
+        dest_dir = BASE_DIR.parent / "stryker_executions" / job_id
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        
+        filename = file_path.name.lower()
+        if filename.endswith(".zip"):
+            with zipfile.ZipFile(file_path, 'r') as zf:
+                zf.extractall(dest_dir)
+            logger.info(f"Successfully extracted zip archive to {dest_dir}")
+        elif filename.endswith(".tar") or filename.endswith(".tar.gz") or filename.endswith(".tgz"):
+            with tarfile.open(file_path, 'r:*') as tf:
+                tf.extractall(dest_dir)
+            logger.info(f"Successfully extracted tar archive to {dest_dir}")
+        else:
+            # Fallback extraction attempts
+            try:
+                with zipfile.ZipFile(file_path, 'r') as zf:
+                    zf.extractall(dest_dir)
+                logger.info(f"Successfully extracted (fallback zip) to {dest_dir}")
+            except Exception:
+                with tarfile.open(file_path, 'r:*') as tf:
+                    tf.extractall(dest_dir)
+                logger.info(f"Successfully extracted (fallback tar) to {dest_dir}")
+    except Exception as e:
+        logger.error(f"Failed to extract SUT to stryker_executions for {job_id}: {e}")
+
 @app.post("/api/submit")
 async def submit_sut(file: UploadFile = File(...)):
     try:
@@ -160,6 +189,9 @@ async def submit_sut(file: UploadFile = File(...)):
         file_path = upload_dir / f"{job_id}_{file.filename}"
         with open(file_path, "wb") as f: f.write(content)
 
+        # Extract archive copy to stryker_executions
+        _extract_to_stryker_executions(file_path, job_id)
+
         job = {
             "job_id": job_id, "filename": file.filename,
             "uploaded_at": datetime.utcnow().isoformat() + "Z",
@@ -167,7 +199,7 @@ async def submit_sut(file: UploadFile = File(...)):
             "file_size": len(content)
         }
         job_storage.save_job(job)
-
+ 
         message = {"job_id": job_id, "sut_path": str(file_path), "status": "submitted"}
         conn = create_connection(logger=logger)
         ch = conn.channel()

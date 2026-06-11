@@ -521,10 +521,8 @@
             </div>
             <div class="card">
                 <div class="card-inner">
-                    <div class="info-row"><span class="info-label">Langage détecté</span><span class="info-value">{{
-                            sut_info.language if sut_info is defined and sut_info else 'Javascript' }}</span></div>
-                    <div class="info-row"><span class="info-label">Framework</span><span class="info-value">{{
-                            sut_info.framework if sut_info is defined and sut_info else 'Express.js' }}</span></div>
+                    <div class="info-row"><span class="info-label">Langage détecté</span><span class="info-value">{{ sut_info.language if sut_info is defined and sut_info else 'Javascript' }}</span></div>
+                    
                     <div class="info-row"><span class="info-label">Fichiers analysés</span><span class="info-value">{{
                             sut_info.files_count if sut_info is defined and sut_info else '22' }}</span></div>
                     <div class="info-row"><span class="info-label">Checksum SHA-256</span><span
@@ -548,18 +546,18 @@
                     <div class="metric-box-val" style="color:var(--accent-cyan)">{{ phase1_count }}</div>
                     <div class="metric-box-label">Trajectoires extraites</div>
                 </div>
-                <div class="metric-box">
+                <!-- <div class="metric-box">
                     <div class="metric-box-val" style="color:var(--accent-blue)">{{ branch_points }}</div>
                     <div class="metric-box-label">Points de branchement</div>
-                </div>
-                <div class="metric-box">
+                </div> -->
+                <!-- <div class="metric-box">
                     <div class="metric-box-val" style="color:var(--accent-purple)">{{ functions }}</div>
                     <div class="metric-box-label">Fonctions couvertes</div>
-                </div>
+                </div> -->
             </div>
             <div class="traj-log">
                 {% if phase1_trajectories %}
-                {% for t in phase1_trajectories[:20] %}
+                {% for t in phase1_trajectories %}
                 <div class="traj-row">
                     <span class="traj-id">{{ t.path_id[-10:] if t.path_id else '—' }}</span>
                     <span class="traj-cond">{{ t.path_condition or 'ø' }}</span>
@@ -603,6 +601,18 @@
                             class="info-value">{{ "%.0f"|format(cost_reduction * 100) }}%</span></div>
                 </div>
             </div>
+            <div class="traj-log" style="margin-top: 16px;">
+                {% if phase2_trajectories %}
+                {% for t in phase2_trajectories %}
+                <div class="traj-row">
+                    <span class="traj-id">{{ t.path_id[-10:] if t.path_id else '—' }}</span>
+                    <span class="traj-cond">{{ t.path_condition or 'ø' }}</span>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div style="text-align:center;padding:20px;color:var(--text-muted)">Aucune trajectoire réduite enregistrée</div>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Phase 3 -->
@@ -628,7 +638,7 @@
             </div>
             <div class="traj-log">
                 {% if phase3_trajectories %}
-                {% for t in phase3_trajectories[:15] %}
+                {% for t in phase3_trajectories %}
                 <div class="traj-row">
                     <span class="traj-id" style="color:var(--accent-amber)">BEST</span>
                     <span class="traj-cond">[{{ t.path_id[-8:] if t.path_id else '?' }}] cost:{{ "%.2f"|format(t.cost or
@@ -678,7 +688,7 @@
         </div>
 
         <!-- Code généré -->
-        {% if generated_tests %}
+        <!-- {% if generated_tests %}
         <div class="section">
             <div class="section-header">
                 <span class="phase-chip">Output</span>
@@ -694,7 +704,7 @@
             </div>
             {% endfor %}
         </div>
-        {% endif %}
+        {% endif %} -->
 
     </div>
 

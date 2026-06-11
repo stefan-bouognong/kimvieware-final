@@ -137,4 +137,4 @@ class MicroserviceBase(ABC):
             self.channel.stop_consuming()
         if self.connection:
             self.connection.close()
-        self.logger.info(f"👋 {self.service_name} stopped")
+        self.logger.info(f" {self.service_name} stopped")
