@@ -3,7 +3,7 @@
 
 Système de test automatisé utilisant l'exécution symbolique et les algorithmes génétiques pour microservices multi-langages.
 
-## 🚀 Fonctionnalités
+##  Fonctionnalités
 - **Phase 0 (Validator)** : Validation d'archives et détection de langage.
 - **Phase 1 (Extractor)** : Extraction de trajectoires symboliques (Python, Java, C).
 - **Phase 2 (SGATS)** : Réduction intelligente des cas de test par similarité.

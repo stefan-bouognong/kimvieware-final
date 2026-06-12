@@ -29,7 +29,7 @@ def create_connection(
                 blocked_connection_timeout=300
             )
             connection = pika.BlockingConnection(parameters)
-            logger.info(f"✅ Connected to RabbitMQ at {host}:{port}")
+            logger.info(f" Connected to RabbitMQ at {host}:{port}")
             return connection
         except Exception as e:
             logger.error(f"Connection attempt {attempt}/{max_retries} to RabbitMQ failed: {e}")

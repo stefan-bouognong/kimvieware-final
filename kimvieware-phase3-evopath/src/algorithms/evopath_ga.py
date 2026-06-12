@@ -63,7 +63,7 @@ class EvoPathGA:
         
         # Handle small input size
         if len(trajectories) < 2:
-            print(f"⚠️ Skipping GA optimization for {len(trajectories)} trajectory")
+            print(f" Skipping GA optimization for {len(trajectories)} trajectory")
             stats = self._compute_stats(trajectories, trajectories, [1.0])
             return trajectories, stats
 
@@ -85,7 +85,7 @@ class EvoPathGA:
         for ind, fit in zip(population, fitnesses):
             ind.fitness.values = fit
         
-        print(f"\n🔬 Evolution with Anti-Cloning Mechanism:")
+        print(f"\n Evolution with Anti-Cloning Mechanism:")
         
         best_fitness_history = []
         

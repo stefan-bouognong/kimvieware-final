@@ -1,44 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Job Not Found</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job introuvable | KIMVIEware</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        .container {
-            text-align: center;
-            background: rgba(255,255,255,0.1);
-            padding: 50px;
-            border-radius: 12px;
-        }
-        h1 { font-size: 3em; margin-bottom: 20px; }
-        p { font-size: 1.2em; margin: 20px 0; }
-        a {
-            background: white;
-            color: #667eea;
-            padding: 15px 30px;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 20px;
-        }
+        :root { --bg:#05080f; --surface:#0c1120; --text:#f0f4f8; --muted:#475569; --cyan:#38bdf8; --border:rgba(255,255,255,0.06); --font:'DM Sans',sans-serif; --mono:'Space Mono',monospace; }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+        .topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 32px; display:flex; align-items:center; justify-content:space-between; }
+        .brand { display:flex; align-items:center; gap:12px; }
+        .brand-logo { width:30px; height:30px; background:linear-gradient(135deg,#38bdf8,#3b82f6); border-radius:6px; display:flex; align-items:center; justify-content:center; }
+        .brand-name { font-family:var(--mono); font-size:0.85rem; font-weight:700; }
+        .back-link { display:inline-flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--muted); text-decoration:none; transition:color 0.2s; }
+        .back-link:hover { color:var(--text); }
+        .main { flex:1; display:flex; align-items:center; justify-content:center; padding:40px; }
+        .error-box { text-align:center; max-width:420px; }
+        .error-code { font-family:var(--mono); font-size:5rem; font-weight:700; color:rgba(56,189,248,0.15); line-height:1; margin-bottom:16px; }
+        .error-title { font-size:1.1rem; font-weight:600; color:var(--text); margin-bottom:8px; }
+        .error-desc { font-size:0.82rem; color:var(--muted); margin-bottom:24px; line-height:1.7; }
+        .error-id { font-family:var(--mono); font-size:0.7rem; color:var(--cyan); background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.15); padding:4px 14px; border-radius:100px; display:inline-block; margin-bottom:28px; }
+        .btn { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer; border:none; text-decoration:none; background:var(--cyan); color:#05080f; transition:background 0.2s; }
+        .btn:hover { background:#7dd3fc; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔍 Job Not Found</h1>
-        <p>Job ID: {{ job_id }}</p>
-        <p>This job may still be processing or doesn't exist.</p>
-        <p>Please wait a moment and refresh, or check your job ID.</p>
-        <a href="/">← Back to Dashboard</a>
-    </div>
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><rect width="6" height="6" x="9" y="9" rx="1"/></svg></div>
+            <span class="brand-name">KIMVIEware</span>
+        </div>
+        <a class="back-link" href="/"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Dashboard</a>
+    </header>
+    <main class="main">
+        <div class="error-box">
+            <div class="error-code">404</div>
+            <div class="error-title">Analyse introuvable</div>
+            <div class="error-desc">Le job demandé n'existe pas dans la base de données ou a été supprimé.</div>
+            <div class="error-id">{{ job_id }}</div><br>
+            <a class="btn" href="/"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" x2="5" y1="12" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Retour au dashboard</a>
+        </div>
+    </main>
 </body>
 </html>

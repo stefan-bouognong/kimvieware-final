@@ -16,18 +16,18 @@ if __name__ == "__main__":
     
     print("""
     ╔════════════════════════════════════════════════════════════════════════════════╗
-    ║                  🚀 KIMVIEware Orchestrator Server                            ║
+    ║                   KIMVIEware Orchestrator Server                            ║
     ║                     Version 4.0.0 - Dashboard Pro                             ║
     ╚════════════════════════════════════════════════════════════════════════════════╝
     
-    🌐 Démarrage du serveur...
-    📍 Adresse: http://localhost:8080
+     Démarrage du serveur...
+     Adresse: http://localhost:8080
     
     Onglets disponibles:
-      🔵 Soumettre     - Télécharger et analyser un SUT
-      📋 Emplois       - Voir tous les emplois en temps réel
-      ⚙️ Services      - Vérifier l'état des microservices
-      📈 Statistiques  - Voir les statistiques complètes
+       Soumettre     - Télécharger et analyser un SUT
+       Emplois       - Voir tous les emplois en temps réel
+      Services      - Vérifier l'état des microservices
+       Statistiques  - Voir les statistiques complètes
     
     WebSocket: ws://localhost:8080/ws (mises à jour en temps réel)
     API: http://localhost:8080/api/*

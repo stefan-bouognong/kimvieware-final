@@ -115,18 +115,18 @@ class JavaExtractor:
         start_time = time.time()
 
         # ── Tentative 1 : JBSE (Exécution Symbolique sur Bytecode) ──────────
-        logger.info("\n  🔬 Tentative JBSE (Java Bytecode Symbolic Executor)…")
+        logger.info("\n   Tentative JBSE (Java Bytecode Symbolic Executor)…")
         jbse_trajectories = self._run_jbse(source_dir, start_time)
 
         if jbse_trajectories:
             elapsed = time.time() - start_time
-            logger.info(f"\n  ✅ JBSE : {len(jbse_trajectories)} trajectoires extraites "
+            logger.info(f"\n   JBSE : {len(jbse_trajectories)} trajectoires extraites "
                         f"en {elapsed:.2f}s")
             return jbse_trajectories
 
         # ── Tentative 2 : Analyse AST avec javalang ──────────────────────────
-        logger.warning("  ⚠️  JBSE non configuré (JBSE_HOME vide ou absent).")
-        logger.info("  🔄 Fallback : analyse statique AST avec javalang…\n")
+        logger.warning("    JBSE non configuré (JBSE_HOME vide ou absent).")
+        logger.info("   Fallback : analyse statique AST avec javalang…\n")
         return self._extract_via_ast(source_dir, start_time)
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -173,17 +173,17 @@ class JavaExtractor:
                 timeout=30
             )
             if result.returncode != 0:
-                logger.warning(f"  ⚠️  Compilation échouée : {result.stderr[:200]}")
+                logger.warning(f"    Compilation échouée : {result.stderr[:200]}")
                 return []
-            logger.info("  ✅ Compilation réussie.")
+            logger.info("   Compilation réussie.")
         except (subprocess.TimeoutExpired, FileNotFoundError) as e:
-            logger.warning(f"  ⚠️  javac non disponible : {e}")
+            logger.warning(f"    javac non disponible : {e}")
             return []
 
         # Étape 2 : Appel JBSE
         jbse_jar = Path(self.jbse_home) / "jbse-0.10.0-shaded.jar"
         if not jbse_jar.exists():
-            logger.warning(f"  ⚠️  JAR JBSE introuvable : {jbse_jar}")
+            logger.warning(f"    JAR JBSE introuvable : {jbse_jar}")
             return []
 
         remaining = self.timeout_global - (time.time() - start_time)
@@ -195,7 +195,7 @@ class JavaExtractor:
             if not class_name:
                 continue
 
-            logger.info(f"  🚀 JBSE sur : {class_name}")
+            logger.info(f"   JBSE sur : {class_name}")
             jbse_cmd = [
                 "java", "-jar", str(jbse_jar),
                 "--cp", str(bin_dir),
@@ -215,9 +215,9 @@ class JavaExtractor:
                     _print_trajectory(t, len(trajectories), "JBSE-SAT",
                                       time.time() - start_time)
             except subprocess.TimeoutExpired:
-                logger.warning(f"  ⏰ JBSE timeout sur {class_name}")
+                logger.warning(f"   JBSE timeout sur {class_name}")
             except Exception as e:
-                logger.warning(f"  ⚠️  Erreur JBSE : {e}")
+                logger.warning(f"    Erreur JBSE : {e}")
 
         return trajectories
 
@@ -291,10 +291,10 @@ class JavaExtractor:
         ]
 
         if not java_files:
-            logger.warning("  ⚠️  Aucun fichier Java trouvé dans le SUT.")
+            logger.warning("    Aucun fichier Java trouvé dans le SUT.")
             return []
 
-        logger.info(f"  📂 {len(java_files)} fichier(s) Java à analyser :")
+        logger.info(f"   {len(java_files)} fichier(s) Java à analyser :")
         for f in java_files:
             logger.info(f"      • {f.relative_to(source_dir)}")
 
@@ -303,20 +303,20 @@ class JavaExtractor:
         for java_file in java_files:
             elapsed = time.time() - start_time
             if elapsed >= self.timeout_global:
-                logger.warning(f"  ⏰ Budget global atteint ({self.timeout_global}s).")
+                logger.warning(f"   Budget global atteint ({self.timeout_global}s).")
                 break
             if len(all_trajectories) >= self.max_paths:
-                logger.warning(f"  🔢 Limite {self.max_paths} trajectoires atteinte.")
+                logger.warning(f"   Limite {self.max_paths} trajectoires atteinte.")
                 break
 
-            logger.info(f"\n  📄 Analyse : {java_file.name}")
+            logger.info(f"\n   Analyse : {java_file.name}")
             logger.info("  " + "─" * 60)
 
             try:
                 trajs = self._extract_from_file(java_file, start_time)
                 all_trajectories.extend(trajs)
             except Exception as e:
-                logger.error(f"  ❌ Erreur sur {java_file.name} : {e}")
+                logger.error(f"   Erreur sur {java_file.name} : {e}")
 
         elapsed = time.time() - start_time
         logger.info("\n" + "=" * 70)
@@ -332,21 +332,21 @@ class JavaExtractor:
         try:
             import javalang  # type: ignore
         except ImportError:
-            logger.error("  ❌ javalang non installé : pip install javalang")
+            logger.error("   javalang non installé : pip install javalang")
             return []
 
         try:
             code = file_path.read_text(encoding="utf-8")
             tree = javalang.parse.parse(code)
         except Exception as e:
-            logger.error(f"  ❌ Parse Java échoué sur {file_path.name} : {e}")
+            logger.error(f"   Parse Java échoué sur {file_path.name} : {e}")
             return []
 
         trajectories: List[Trajectory] = []
 
         # Trouver toutes les déclarations de méthodes
         methods = [node for _, node in tree.filter(javalang.tree.MethodDeclaration)]
-        logger.info(f"  🔧 {len(methods)} méthode(s) trouvée(s)")
+        logger.info(f"   {len(methods)} méthode(s) trouvée(s)")
 
         for method in methods:
             elapsed = time.time() - start_time
@@ -356,7 +356,7 @@ class JavaExtractor:
                 break
 
             method_name = method.name
-            logger.info(f"\n  🔧 Méthode : {method_name}()")
+            logger.info(f"\n   Méthode : {method_name}()")
 
             # Construction du CFG
             self._next_id = 0

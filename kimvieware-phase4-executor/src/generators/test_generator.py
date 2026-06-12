@@ -22,7 +22,7 @@ class TestGenerator:
         output_dir.mkdir(parents=True, exist_ok=True)
         test_file = output_dir / 'test_generated.py'
         
-        print(f"\n🔧 Generating tests for SUT at {sut_url}...")
+        print(f"\n Generating tests for SUT at {sut_url}...")
         
         # Generate pytest test cases
         test_code = self._generate_pytest_code(trajectories, sut_url)

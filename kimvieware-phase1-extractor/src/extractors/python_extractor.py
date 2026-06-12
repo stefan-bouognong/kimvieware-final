@@ -399,14 +399,14 @@ class PythonExtractor(ExtractorBase):
 
         py_files = [
             f for f in service_path.rglob("*.py")
-            if not any(x in str(f) for x in ["test_", "venv", "__pycache__", ".tox"])
+            if not any(x in str(f) for x in ["test_", "venv", "__pycache__", ".tox", "node_modules", ".git"])
         ]
 
         if not py_files:
-            logger.warning("  ⚠️  Aucun fichier Python trouvé dans le SUT.")
+            logger.warning("    Aucun fichier Python trouvé dans le SUT.")
             return []
 
-        logger.info(f"  📂 {len(py_files)} fichier(s) Python à analyser :")
+        logger.info(f"   {len(py_files)} fichier(s) Python à analyser :")
         for f in py_files:
             logger.info(f"      • {f.relative_to(service_path)}")
 
@@ -419,23 +419,23 @@ class PythonExtractor(ExtractorBase):
             # ── Budget global (Theorem 1.2 : Budgeted Termination) ──────────
             elapsed = time.time() - start_time
             if elapsed >= self.timeout_global:
-                logger.warning(f"  ⏰ Budget global atteint ({self.timeout_global}s). Arrêt.")
+                logger.warning(f"   Budget global atteint ({self.timeout_global}s). Arrêt.")
                 break
             if len(all_trajectories) >= self.max_paths:
-                logger.warning(f"  🔢 Limite de {self.max_paths} trajectoires atteinte. Arrêt.")
+                logger.warning(f"   Limite de {self.max_paths} trajectoires atteinte. Arrêt.")
                 break
 
-            logger.info(f"\n  📄 Analyse : {py_file.name}")
+            logger.info(f"\n   Analyse : {py_file.name}")
             logger.info("  " + "─" * 60)
 
             try:
                 source = py_file.read_text(encoding="utf-8")
                 tree   = ast.parse(source, filename=str(py_file))
             except SyntaxError as e:
-                logger.error(f"  ❌ Erreur de syntaxe dans {py_file.name}: {e}")
+                logger.error(f"   Erreur de syntaxe dans {py_file.name}: {e}")
                 continue
             except Exception as e:
-                logger.error(f"  ❌ Impossible de lire {py_file.name}: {e}")
+                logger.error(f"   Impossible de lire {py_file.name}: {e}")
                 continue
 
             # Parcourir toutes les FunctionDef du fichier
@@ -451,7 +451,7 @@ class PythonExtractor(ExtractorBase):
                     break
 
                 func_name = node.name
-                logger.info(f"\n  🔧 Fonction : {func_name}() — ligne {node.lineno}")
+                logger.info(f"\n   Fonction : {func_name}() — ligne {node.lineno}")
 
                 # ── Exploration AST (Phase 1, Algorithme 1) ─────────────────
                 raw_paths = crawler.explore_function(node)

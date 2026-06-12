@@ -10,7 +10,7 @@ import time
 sut_zip = Path.home() / "KIMVIWARE" / "KIMVIEware-System-kimvieware-sut-timetables" / "auth-service.zip"
 
 if not sut_zip.exists():
-    print(f"❌ {sut_zip} not found")
+    print(f" {sut_zip} not found")
     print("Creating ZIP...")
     import subprocess
     subprocess.run([
@@ -43,7 +43,7 @@ channel.basic_publish(
     properties=pika.BasicProperties(delivery_mode=2)
 )
 
-print(f"✅ Submitted job: {job_id}")
+print(f" Submitted job: {job_id}")
 print(f"   SUT: {sut_zip.name}")
 print(f"\n⏳ Waiting for processing...")
 print(f"   Watch Terminal 1 (Validator)")
@@ -54,7 +54,7 @@ connection.close()
 # Wait and check results
 time.sleep(5)
 
-print(f"\n🔍 Checking results...")
+print(f"\n Checking results...")
 
 # Check extraction.completed queue
 connection = pika.BlockingConnection(
@@ -67,12 +67,12 @@ method, properties, body = channel.basic_get(queue='extraction.completed', auto_
 
 if method:
     result = json.loads(body)
-    print(f"\n✅ PIPELINE SUCCESS!")
+    print(f"\n PIPELINE SUCCESS!")
     print(f"   Job ID: {result['job_id']}")
     print(f"   Status: {result['status']}")
     print(f"   Language: {result['sut_info']['language']}")
     print(f"   Trajectories: {result['trajectories_count']}")
-    print(f"\n📊 First trajectory sample:")
+    print(f"\n First trajectory sample:")
     if result.get('trajectories'):
         t = result['trajectories'][0]
         print(f"   - Path ID: {t['path_id']}")
@@ -80,6 +80,6 @@ if method:
         print(f"   - Constraints: {len(t['constraints'])}")
         print(f"   - Cost: {t['cost']}")
 else:
-    print(f"❌ No result yet, wait more...")
+    print(f" No result yet, wait more...")
 
 connection.close()

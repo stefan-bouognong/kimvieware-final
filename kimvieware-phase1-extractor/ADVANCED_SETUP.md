@@ -2,15 +2,15 @@
 
 ## État actuel
 
-✅ **Phase 1 Extractor** fonctionne en mode **Fallback Gracieux** :
+ **Phase 1 Extractor** fonctionne en mode **Fallback Gracieux** :
 
-- **Python (PythonExtractor)** : ✅ Opérationnel (AST + Z3 SMT Solver)
-- **C/C++ (CExtractor)** : ✅ Opérationnel en fallback (libclang + Z3)
-  - Mode primaire KLEE : ⚠️  Non installé
-  - Mode fallback : ✅ libclang (analyse AST) + Z3 (vérification SAT)
-- **Java (JavaExtractor)** : ✅ Opérationnel en fallback (javalang + Z3)
-  - Mode primaire JBSE : ⚠️  Non configuré
-  - Mode fallback : ✅ javalang (analyse AST) + Z3 (vérification SAT)
+- **Python (PythonExtractor)** :  Opérationnel (AST + Z3 SMT Solver)
+- **C/C++ (CExtractor)** :  Opérationnel en fallback (libclang + Z3)
+  - Mode primaire KLEE :   Non installé
+  - Mode fallback :  libclang (analyse AST) + Z3 (vérification SAT)
+- **Java (JavaExtractor)** :  Opérationnel en fallback (javalang + Z3)
+  - Mode primaire JBSE :   Non configuré
+  - Mode fallback :  javalang (analyse AST) + Z3 (vérification SAT)
 
 ## Installation optionnelle : KLEE
 
@@ -99,37 +99,37 @@ cd /home/davie/KIMVIWARE/kimvieware-phase1-extractor
 # Test libclang (C fallback)
 PYTHONPATH=src /home/davie/KIMVIWARE/venv_kimvieware/bin/python -c "
 import clang.cindex
-print('✅ libclang OK')
+print(' libclang OK')
 "
 
 # Test javalang (Java fallback)  
 /home/davie/KIMVIWARE/venv_kimvieware/bin/python -c "
 import javalang
-print('✅ javalang OK')
+print(' javalang OK')
 "
 
 # Test Z3 (SMT Solver)
 /home/davie/KIMVIWARE/venv_kimvieware/bin/python -c "
 import z3
-print('✅ Z3 version:', z3.get_version())
+print(' Z3 version:', z3.get_version())
 "
 
 # Test KLEE (optionnel)
-which klee && echo "✅ KLEE OK" || echo "⚠️ KLEE non trouvé (fallback disponible)"
+which klee && echo " KLEE OK" || echo " KLEE non trouvé (fallback disponible)"
 
 # Test JBSE (optionnel)
-test -n "$JBSE_HOME" && echo "✅ JBSE_HOME: $JBSE_HOME" || echo "⚠️ JBSE_HOME vide (fallback disponible)"
+test -n "$JBSE_HOME" && echo " JBSE_HOME: $JBSE_HOME" || echo " JBSE_HOME vide (fallback disponible)"
 ```
 
 ## Performance
 
 | Extracteur | Mode | Vitesse | Précision | Installation |
 |-----------|------|---------|-----------|--------------|
-| Python | AST + Z3 | Rapide | Très bonne | ✅ Intégré |
-| C/C++ | libclang + Z3 | Rapide | Bonne | ✅ Système |
-| C/C++ | KLEE + Z3 | Lente | Excellente | ⚠️ Manuel |
-| Java | javalang + Z3 | Rapide | Bonne | ✅ Intégré |
-| Java | JBSE + Z3 | Moyenne | Excellente | ⚠️ Manuel |
+| Python | AST + Z3 | Rapide | Très bonne |  Intégré |
+| C/C++ | libclang + Z3 | Rapide | Bonne |  Système |
+| C/C++ | KLEE + Z3 | Lente | Excellente |  Manuel |
+| Java | javalang + Z3 | Rapide | Bonne |  Intégré |
+| Java | JBSE + Z3 | Moyenne | Excellente |  Manuel |
 
 ## Notes
 

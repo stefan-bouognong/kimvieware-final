@@ -74,7 +74,7 @@ def _init_clang():
                     ci.Config.set_library_file(path)
                     _clang_index = ci.Index.create()
                     _CLANG_AVAILABLE = True
-                    logger.info(f"  ✅ libclang chargé : {path}")
+                    logger.info(f"   libclang chargé : {path}")
                     return True
                 except Exception:
                     continue
@@ -82,15 +82,15 @@ def _init_clang():
         # Essai avec la config système par défaut
         _clang_index = ci.Index.create()
         _CLANG_AVAILABLE = True
-        logger.info("  ✅ libclang chargé (chemin système)")
+        logger.info("   libclang chargé (chemin système)")
         return True
 
     except ImportError:
-        logger.warning("  ⚠️  clang Python bindings non installés.")
+        logger.warning("    clang Python bindings non installés.")
         logger.warning("      → pip install libclang")
         return False
     except Exception as e:
-        logger.warning(f"  ⚠️  Impossible d'initialiser libclang : {e}")
+        logger.warning(f"    Impossible d'initialiser libclang : {e}")
         return False
 
 
@@ -167,18 +167,18 @@ class CExtractor:
         start_time = time.time()
 
         # ── Tentative 1 : KLEE ───────────────────────────────────────────────
-        logger.info("\n  🔬 Tentative KLEE (Symbolic Execution Engine)…")
+        logger.info("\n   Tentative KLEE (Symbolic Execution Engine)…")
         klee_trajectories = self._run_klee(source_dir, start_time)
 
         if klee_trajectories:
             elapsed = time.time() - start_time
-            logger.info(f"\n  ✅ KLEE : {len(klee_trajectories)} trajectoires extraites "
+            logger.info(f"\n   KLEE : {len(klee_trajectories)} trajectoires extraites "
                         f"en {elapsed:.2f}s")
             return klee_trajectories
 
         # ── Tentative 2 : libclang ───────────────────────────────────────────
-        logger.warning("  ⚠️  KLEE non disponible ou non configuré.")
-        logger.info("  🔄 Fallback : analyse statique AST avec libclang…\n")
+        logger.warning("    KLEE non disponible ou non configuré.")
+        logger.info("   Fallback : analyse statique AST avec libclang…\n")
         return self._extract_via_ast(source_dir, start_time)
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -202,7 +202,7 @@ class CExtractor:
             logger.debug("  KLEE non trouvé dans PATH.")
             return []
         if not _is_tool_available("clang"):
-            logger.warning("  ⚠️  clang non trouvé dans PATH (nécessaire pour KLEE).")
+            logger.warning("    clang non trouvé dans PATH (nécessaire pour KLEE).")
             return []
 
         c_files = list(source_dir.rglob("*.c")) + list(source_dir.rglob("*.cpp"))
@@ -235,10 +235,10 @@ class CExtractor:
                     compile_cmd, capture_output=True, text=True, timeout=30
                 )
                 if result.returncode != 0:
-                    logger.warning(f"  ⚠️  Compilation échouée : {result.stderr[:200]}")
+                    logger.warning(f"    Compilation échouée : {result.stderr[:200]}")
                     continue
             except (subprocess.TimeoutExpired, FileNotFoundError) as e:
-                logger.warning(f"  ⚠️  clang error : {e}")
+                logger.warning(f"    clang error : {e}")
                 continue
 
             # Étape 2 : Lancer KLEE
@@ -252,7 +252,7 @@ class CExtractor:
                 str(bc_file)
             ]
 
-            logger.info(f"  🚀 KLEE sur : {bc_file.name}")
+            logger.info(f"   KLEE sur : {bc_file.name}")
             try:
                 r = subprocess.run(
                     klee_cmd, capture_output=True, text=True,
@@ -266,9 +266,9 @@ class CExtractor:
                     _print_trajectory(t, len(trajectories), "KLEE-SAT",
                                       time.time() - start_time)
             except subprocess.TimeoutExpired:
-                logger.warning(f"  ⏰ KLEE timeout sur {bc_file.name}")
+                logger.warning(f"   KLEE timeout sur {bc_file.name}")
             except Exception as e:
-                logger.warning(f"  ⚠️  Erreur KLEE : {e}")
+                logger.warning(f"    Erreur KLEE : {e}")
             finally:
                 # Nettoyer le .bc
                 if bc_file.exists():
@@ -331,7 +331,7 @@ class CExtractor:
         Construit le CFG de chaque fonction et explore tous les chemins par DFS.
         """
         if not _init_clang():
-            logger.error("  ❌ libclang non disponible — impossible d'analyser C/C++.")
+            logger.error("   libclang non disponible — impossible d'analyser C/C++.")
             logger.info("     → pip install libclang && apt install clang")
             return []
 
@@ -343,10 +343,10 @@ class CExtractor:
         ]
 
         if not all_files:
-            logger.warning("  ⚠️  Aucun fichier C/C++ trouvé dans le SUT.")
+            logger.warning("    Aucun fichier C/C++ trouvé dans le SUT.")
             return []
 
-        logger.info(f"  📂 {len(all_files)} fichier(s) C/C++ à analyser :")
+        logger.info(f"   {len(all_files)} fichier(s) C/C++ à analyser :")
         for f in all_files:
             logger.info(f"      • {f.relative_to(source_dir)}")
 
@@ -355,20 +355,20 @@ class CExtractor:
         for src_file in all_files:
             elapsed = time.time() - start_time
             if elapsed >= self.timeout_global:
-                logger.warning(f"  ⏰ Budget global atteint ({self.timeout_global}s).")
+                logger.warning(f"   Budget global atteint ({self.timeout_global}s).")
                 break
             if len(all_trajectories) >= self.max_paths:
-                logger.warning(f"  🔢 Limite {self.max_paths} trajectoires atteinte.")
+                logger.warning(f"   Limite {self.max_paths} trajectoires atteinte.")
                 break
 
-            logger.info(f"\n  📄 Analyse : {src_file.name}")
+            logger.info(f"\n   Analyse : {src_file.name}")
             logger.info("  " + "─" * 60)
 
             try:
                 trajs = self._extract_from_file(src_file, start_time)
                 all_trajectories.extend(trajs)
             except Exception as e:
-                logger.error(f"  ❌ Erreur sur {src_file.name} : {e}")
+                logger.error(f"   Erreur sur {src_file.name} : {e}")
 
         elapsed = time.time() - start_time
         logger.info("\n" + "=" * 70)
@@ -391,13 +391,13 @@ class CExtractor:
         )
 
         if not tu:
-            logger.error(f"  ❌ libclang ne peut pas parser {file_path.name}")
+            logger.error(f"   libclang ne peut pas parser {file_path.name}")
             return []
 
         # Afficher les erreurs de parsing non fatales
         errors = [d for d in tu.diagnostics if d.severity >= 3]
         if errors:
-            logger.warning(f"  ⚠️  {len(errors)} erreur(s) de parsing dans {file_path.name}")
+            logger.warning(f"    {len(errors)} erreur(s) de parsing dans {file_path.name}")
             for e in errors[:2]:
                 logger.warning(f"      {e.spelling}")
 
@@ -405,7 +405,7 @@ class CExtractor:
 
         # Trouver toutes les définitions de fonctions
         functions = self._find_functions(tu.cursor)
-        logger.info(f"  🔧 {len(functions)} fonction(s) trouvée(s)")
+        logger.info(f"   {len(functions)} fonction(s) trouvée(s)")
 
         for func_cursor in functions:
             elapsed = time.time() - start_time
@@ -415,7 +415,7 @@ class CExtractor:
                 break
 
             func_name = func_cursor.spelling
-            logger.info(f"\n  🔧 Fonction : {func_name}()")
+            logger.info(f"\n   Fonction : {func_name}()")
 
             # Construction du CFG
             self._next_id = 0

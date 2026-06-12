@@ -61,14 +61,14 @@ class EvoPathService(MicroserviceBase):
                 try:
                     feedback = json.loads(body.decode())
                     score = feedback.get('mutation_score', 0)
-                    self.logger.info(f"🔄 Received feedback: Mutation Score = {score}%")
+                    self.logger.info(f" Received feedback: Mutation Score = {score}%")
                     
                     # Adjust GA mutation score bias
                     self.evopath.current_mutation_score = score / 100.0
                     
                     # Dynamic weight adjustment (Self-Adaptive GA)
                     if score < 80:
-                        self.logger.info("⚠️ Low mutation score detected. Increasing mutation bias.")
+                        self.logger.info(" Low mutation score detected. Increasing mutation bias.")
                         self.evopath.w_mut += 0.05
                         self.evopath.w_cov -= 0.05
                     
@@ -105,7 +105,7 @@ class EvoPathService(MicroserviceBase):
         optimized_set, stats = self.evopath.optimize(trajectories)
         
         self.logger.info(
-            f"[{job_id}] ✅ Optimized {stats['original_count']} → {stats['optimized_count']} "
+            f"[{job_id}]  Optimized {stats['original_count']} → {stats['optimized_count']} "
             f"({stats['size_reduction']*100:.1f}% reduction)"
         )
         

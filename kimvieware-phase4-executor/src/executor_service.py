@@ -97,7 +97,7 @@ class ExecutorService(MicroserviceBase):
                 return self._error(job_id, str(e))
         
         self.logger.info(
-            f"[{job_id}] ✅ Execution: {exec_stats['passed']}/{exec_stats['total']} passed, "
+            f"[{job_id}]  Execution: {exec_stats['passed']}/{exec_stats['total']} passed, "
             f"Mutation: {mutation_stats['mutation_score']:.1f}%"
         )
 
@@ -111,7 +111,7 @@ class ExecutorService(MicroserviceBase):
             }
             declare_queue(self.channel, 'ga.feedback')
             publish_message(self.channel, 'ga.feedback', feedback_msg)
-            self.logger.info(f"[{job_id}] 🔄 Feedback sent to Phase 3 (ga.feedback)")
+            self.logger.info(f"[{job_id}]  Feedback sent to Phase 3 (ga.feedback)")
         except Exception as e:
             self.logger.error(f"[{job_id}] Failed to send feedback: {e}")
         

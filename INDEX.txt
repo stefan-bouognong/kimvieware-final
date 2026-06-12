@@ -2,12 +2,12 @@
 KIMVIWARE - Multi-Language Symbolic Execution Framework for Automated Testing
 ================================================================================
 
-STATUS: ✅ COMPLETE & READY FOR TESTING
+STATUS:  COMPLETE & READY FOR TESTING
 DATE: 2026-01-22
 VERSION: 1.0
 
 ================================================================================
-🚀 QUICK START
+ QUICK START
 ================================================================================
 
 1. Check infrastructure:
@@ -20,7 +20,7 @@ VERSION: 1.0
    cat ~/KIMVIWARE/KIMVIWARE_TEST_REPORT.json
 
 ================================================================================
-📋 TEST SCRIPTS
+ TEST SCRIPTS
 ================================================================================
 
 MAIN TESTS:
@@ -47,10 +47,10 @@ UTILITIES:
 🏗️ INFRASTRUCTURE
 ================================================================================
 
-✅ RabbitMQ (5672)      - Message queue
-✅ MongoDB (27017)      - Job & trajectory storage
-✅ Redis (6379)         - Caching
-✅ MinIO (9000)         - Object storage
+ RabbitMQ (5672)      - Message queue
+ MongoDB (27017)      - Job & trajectory storage
+ Redis (6379)         - Caching
+ MinIO (9000)         - Object storage
 
 All services: OPERATIONAL & HEALTHY
 
@@ -67,7 +67,7 @@ All services: OPERATIONAL & HEALTHY
 Total: 3,500+ LOC, 317+ branches
 
 ================================================================================
-🔄 PIPELINE (4 Phases)
+ PIPELINE (4 Phases)
 ================================================================================
 
 Phase 0: VALIDATION & DETECTION
@@ -116,7 +116,7 @@ Mutation Testing
   • Automated fault injection
 
 ================================================================================
-📊 EXPECTED RESULTS (auth-service)
+ EXPECTED RESULTS (auth-service)
 ================================================================================
 
 Phase 1: 140 trajectories extracted
@@ -146,7 +146,7 @@ OPTION 4: Multi-SUT Test (2-3 hours)
   python test_full_system.py
 
 ================================================================================
-✅ SUCCESS CRITERIA
+ SUCCESS CRITERIA
 ================================================================================
 
 ✓ All 4 phases complete
@@ -158,7 +158,7 @@ OPTION 4: Multi-SUT Test (2-3 hours)
 ✓ Total time: 30-50 minutes
 
 ================================================================================
-🔧 TROUBLESHOOTING
+ TROUBLESHOOTING
 ================================================================================
 
 Check infrastructure:
@@ -208,20 +208,20 @@ KIMVIWARE/
     └── room-service.zip           ← Ready
 
 ================================================================================
-📈 FRAMEWORK STATUS
+ FRAMEWORK STATUS
 ================================================================================
 
-Infrastructure:       ✅ All services healthy
-Framework:           ✅ All 5 phases implemented
-Algorithms:          ✅ SGATS + EvoPath-GA ready
-SUTs:                ✅ 5 services available
-Documentation:       ✅ Complete
-Test Scripts:        ✅ 5 test utilities provided
+Infrastructure:        All services healthy
+Framework:            All 5 phases implemented
+Algorithms:           SGATS + EvoPath-GA ready
+SUTs:                 5 services available
+Documentation:        Complete
+Test Scripts:         5 test utilities provided
 
-OVERALL STATUS: ✅ READY FOR TESTING
+OVERALL STATUS:  READY FOR TESTING
 
 ================================================================================
-🚀 RECOMMENDED NEXT STEP
+ RECOMMENDED NEXT STEP
 ================================================================================
 
 python ~/KIMVIWARE/test_complete_pipeline.py

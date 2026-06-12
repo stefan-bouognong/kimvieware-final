@@ -10,6 +10,7 @@ lib/
 share/
 pyvenv.cfg
 
+node_modules/
 # Python bytecode
 __pycache__/
 *.py[cod]
@@ -27,6 +28,8 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .run/
+
+**/node_modules/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints

@@ -54,7 +54,7 @@ class SGATS:
             return [], {}
 
         print(f"\n{'='*60}")
-        print(f"🔬 SGATS: Advanced Similarity-Guided Selection")
+        print(f" SGATS: Advanced Similarity-Guided Selection")
         print(f"{'='*60}")
         print(f"Input: |T| = {len(trajectories)} trajectories")
         
