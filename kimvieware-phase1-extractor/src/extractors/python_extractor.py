@@ -399,7 +399,7 @@ class PythonExtractor(ExtractorBase):
 
         py_files = [
             f for f in service_path.rglob("*.py")
-            if not any(x in str(f) for x in ["test_", "venv", "__pycache__", ".tox"])
+            if not any(x in str(f) for x in ["test_", "venv", "__pycache__", ".tox", "node_modules", ".git"])
         ]
 
         if not py_files:

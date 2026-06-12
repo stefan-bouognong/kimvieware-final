@@ -52,7 +52,7 @@ class JsExtractionStrategy(ExtractionStrategy):
 
     def extract_paths(self, source_dir: Path, max_paths: int = 1000) -> List[Trajectory]:
         from .js_extractor import JSExtractor
-        extractor = JSExtractor(max_paths=max_paths)
+        extractor = JSExtractor(max_paths=max_paths, timeout_global=600)
         return extractor.extract_paths(source_dir)
 
 

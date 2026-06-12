@@ -294,10 +294,63 @@
             border: 1px solid var(--border-subtle);
             border-radius: 8px;
             padding: 16px;
-            max-height: 260px;
+            max-height: 520px;
             overflow-y: auto;
             font-family: var(--font-mono);
             font-size: 0.7rem;
+        }
+
+        .traj-count-badge {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent-cyan);
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+
+        .traj-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--accent-cyan);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+
+        .traj-card:last-child { margin-bottom: 0; }
+
+        .traj-card-header {
+            color: var(--accent-cyan);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .traj-card-row {
+            display: flex;
+            gap: 8px;
+            padding: 2px 0;
+            line-height: 1.5;
+        }
+
+        .traj-card-label {
+            color: var(--text-muted);
+            min-width: 110px;
+            flex-shrink: 0;
+        }
+
+        .traj-card-value {
+            color: var(--text-secondary);
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .traj-constraints {
+            margin-top: 4px;
+            padding-left: 8px;
+            border-left: 2px solid rgba(56, 189, 248, 0.2);
         }
 
         .traj-row {
@@ -433,6 +486,24 @@
 </head>
 
 <body>
+    {% macro render_trajectory_card(t, idx) %}
+    <div class="traj-card">
+        <div class="traj-card-header">TRAJECTOIRE #{{ "%04d"|format(idx + 1) }}</div>
+        <div class="traj-card-row"><span class="traj-card-label">ID</span><span class="traj-card-value">{{ t.path_id or '—' }}</span></div>
+        <div class="traj-card-row"><span class="traj-card-label">SMT</span><span class="traj-card-value">{{ 'UNSAT' if t.is_feasible is sameas false else 'SAT' }}</span></div>
+        <div class="traj-card-row"><span class="traj-card-label">Blocs CFG</span><span class="traj-card-value">{% if t.basic_blocks %}{{ t.basic_blocks[:10]|join(' → ') }}{% if t.basic_blocks|length > 10 %} → … ({{ t.basic_blocks|length }} blocs total){% endif %}{% else %}—{% endif %}</span></div>
+        <div class="traj-card-row"><span class="traj-card-label">Branches</span><span class="traj-card-value">{{ t.branches_covered|length if t.branches_covered else 0 }} arc(s) couvert(s)</span></div>
+        <div class="traj-card-row"><span class="traj-card-label">Coût |t|</span><span class="traj-card-value">{{ "%.0f"|format(t.cost or 0) }}</span></div>
+        <div class="traj-card-row"><span class="traj-card-label">Pi(t)</span><span class="traj-card-value">{{ t.path_condition or 'True' }}</span></div>
+        {% if t.constraints %}
+        <div class="traj-constraints">
+            {% for c in t.constraints %}
+            <div class="traj-card-row"><span class="traj-card-label">[{{ "%02d"|format(loop.index) }}]</span><span class="traj-card-value">{{ c }}</span></div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endmacro %}
 
     <header class="topbar">
         <div class="topbar-left">
@@ -544,7 +615,7 @@
             <div class="metrics-strip">
                 <div class="metric-box">
                     <div class="metric-box-val" style="color:var(--accent-cyan)">{{ phase1_count }}</div>
-                    <div class="metric-box-label">Trajectoires extraites</div>
+                    <div class="metric-box-label">source path</div>
                 </div>
                 <!-- <div class="metric-box">
                     <div class="metric-box-val" style="color:var(--accent-blue)">{{ branch_points }}</div>
@@ -557,11 +628,9 @@
             </div>
             <div class="traj-log">
                 {% if phase1_trajectories %}
+                <div class="traj-count-badge">{{ phase1_trajectories|length }} trajectoire(s) affichée(s)</div>
                 {% for t in phase1_trajectories %}
-                <div class="traj-row">
-                    <span class="traj-id">{{ t.path_id[-10:] if t.path_id else '—' }}</span>
-                    <span class="traj-cond">{{ t.path_condition or 'ø' }}</span>
-                </div>
+                {{ render_trajectory_card(t, loop.index0) }}
                 {% endfor %}
                 {% else %}
                 <div style="text-align:center;padding:20px;color:var(--text-muted)">Aucune trajectoire enregistrée</div>
@@ -603,11 +672,9 @@
             </div>
             <div class="traj-log" style="margin-top: 16px;">
                 {% if phase2_trajectories %}
+                <div class="traj-count-badge">{{ phase2_trajectories|length }} trajectoire(s) affichée(s)</div>
                 {% for t in phase2_trajectories %}
-                <div class="traj-row">
-                    <span class="traj-id">{{ t.path_id[-10:] if t.path_id else '—' }}</span>
-                    <span class="traj-cond">{{ t.path_condition or 'ø' }}</span>
-                </div>
+                {{ render_trajectory_card(t, loop.index0) }}
                 {% endfor %}
                 {% else %}
                 <div style="text-align:center;padding:20px;color:var(--text-muted)">Aucune trajectoire réduite enregistrée</div>
@@ -638,12 +705,9 @@
             </div>
             <div class="traj-log">
                 {% if phase3_trajectories %}
+                <div class="traj-count-badge">{{ phase3_trajectories|length }} trajectoire(s) affichée(s)</div>
                 {% for t in phase3_trajectories %}
-                <div class="traj-row">
-                    <span class="traj-id" style="color:var(--accent-amber)">BEST</span>
-                    <span class="traj-cond">[{{ t.path_id[-8:] if t.path_id else '?' }}] cost:{{ "%.2f"|format(t.cost or
-                        0) }} | branches:{{ t.branches_covered|length if t.branches_covered else 0 }}</span>
-                </div>
+                {{ render_trajectory_card(t, loop.index0) }}
                 {% endfor %}
                 {% else %}
                 <div style="text-align:center;padding:20px;color:var(--text-muted)">Suite optimale vide</div>

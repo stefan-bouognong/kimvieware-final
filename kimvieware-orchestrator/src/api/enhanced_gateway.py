@@ -46,9 +46,17 @@ def _start_message_consumers():
             # Smart trajectory storage by phase
             if 'trajectories' in message:
                 job_update['trajectories'] = message['trajectories']
-                if status == 'extracted': job_update['phase1_trajectories'] = message['trajectories']
+                if status == 'extracted':
+                    job_update['phase1_trajectories'] = message['trajectories']
+                    if 'extraction_count' not in message:
+                        job_update['extraction_count'] = len(message['trajectories'])
                 if status == 'reduced': job_update['phase2_trajectories'] = message['trajectories']
                 if status == 'optimized': job_update['phase3_trajectories'] = message['trajectories']
+
+            if status == 'extracted' and 'extraction_count' not in job_update:
+                count = message.get('extraction_count') or message.get('trajectories_count')
+                if count is not None:
+                    job_update['extraction_count'] = count
 
             if 'original_trajectories' in message: job_update['original_trajectories'] = message['original_trajectories']
             if 'sut_info' in message: job_update['sut_info'] = message['sut_info']

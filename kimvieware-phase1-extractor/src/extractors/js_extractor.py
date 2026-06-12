@@ -248,7 +248,8 @@ class JSExtractor:
     # ─────────────────────────
 
     def extract_paths(self, source_dir: Path) -> List[Trajectory]:
-        files = list(source_dir.rglob("*.js")) + list(source_dir.rglob("*.ts"))
+        all_files = list(source_dir.rglob("*.js")) + list(source_dir.rglob("*.ts"))
+        files = [f for f in all_files if not any(part in f.parts for part in ["node_modules", "dist", "build", ".next"])]
 
         all_traj = []
         start_time = time.time()

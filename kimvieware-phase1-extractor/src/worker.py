@@ -65,6 +65,8 @@ def process_job(message: dict):
         'job_id': job_id,
         'status': JobStatus.EXTRACTED.value,
         'sut_info': sut_info,
+        'extraction_count': len(trajectories),
+        'trajectories_count': len(trajectories),
         'trajectories': [
             {
                 'path_id': t.path_id,
