@@ -46,15 +46,29 @@ def _start_message_consumers():
             # Smart trajectory storage by phase
             if 'trajectories' in message:
                 job_update['trajectories'] = message['trajectories']
-                if status == 'extracted': job_update['phase1_trajectories'] = message['trajectories']
+                if status == 'extracted':
+                    job_update['phase1_trajectories'] = message['trajectories']
+                    if 'extraction_count' not in message:
+                        job_update['extraction_count'] = len(message['trajectories'])
                 if status == 'reduced': job_update['phase2_trajectories'] = message['trajectories']
                 if status == 'optimized': job_update['phase3_trajectories'] = message['trajectories']
+
+            if status == 'extracted' and 'extraction_count' not in job_update:
+                count = message.get('extraction_count') or message.get('trajectories_count')
+                if count is not None:
+                    job_update['extraction_count'] = count
 
             if 'original_trajectories' in message: job_update['original_trajectories'] = message['original_trajectories']
             if 'sut_info' in message: job_update['sut_info'] = message['sut_info']
             if 'sgats_stats' in message: job_update['sgats_stats'] = message['sgats_stats']
             if 'evopath_stats' in message: job_update['evopath_stats'] = message['evopath_stats']
             if 'generated_test_code' in message: job_update['generated_test_code'] = message['generated_test_code']
+            if 'test_cases' in message: job_update['test_cases'] = message['test_cases']
+            if 'phase4_trajectories' in message: job_update['phase4_trajectories'] = message['phase4_trajectories']
+            if status == 'completed':
+                for key in ('phase1_trajectories', 'phase2_trajectories', 'phase3_trajectories'):
+                    if key in message:
+                        job_update[key] = message[key]
             if 'error' in message: job_update['error'] = message['error']
 
             job_storage.save_job(job_update)
@@ -62,13 +76,19 @@ def _start_message_consumers():
         except Exception as e:
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
-    try:
-        connection = create_connection(logger=logger)
-        channel = connection.channel()
-        declare_queue(channel, 'phase.updates')
-        channel.basic_consume(queue='phase.updates', on_message_callback=callback)
-        channel.start_consuming()
-    except: pass
+    while True:
+        try:
+            import time
+            connection = create_connection(logger=logger)
+            channel = connection.channel()
+            declare_queue(channel, 'phase.updates')
+            channel.basic_consume(queue='phase.updates', on_message_callback=callback)
+            logger.info(" Orchestrator Consumer connected to 'phase.updates'")
+            channel.start_consuming()
+        except Exception as e:
+            logger.error(f"Orchestrator Consumer disconnected: {e}. Retrying in 5s...")
+            import time
+            time.sleep(5)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -96,9 +116,33 @@ def view_report(request: Request, job_id: str):
         sgats = job.get("sgats_stats", {})
         evo = job.get("evopath_stats", {})
         mut = job.get("mutation_stats", {})
+        exec_stats = job.get("execution_stats", {})
+        test_cases = job.get("test_cases", [])
         
         # Safety check for generated test code
         raw_code = job.get("generated_test_code") or "# Code non disponible"
+        
+        # Build structured test cases for display
+        if not test_cases and raw_code != "# Code non disponible":
+            test_cases = [{"name": "test_generated.py", "code": raw_code}]
+        
+        display_tests = []
+        for tc in test_cases:
+            if isinstance(tc, dict) and 'name' in tc:
+                display_tests.append({
+                    "name": tc.get('name', tc.get('id', 'test')),
+                    "scenario": tc.get('scenario', ''),
+                    "inputs": tc.get('inputs', {}),
+                    "expected": tc.get('expected', ''),
+                    "path_condition": tc.get('path_condition', ''),
+                    "constraints": tc.get('constraints', []),
+                    "code": tc.get('code', ''),
+                })
+            else:
+                display_tests.append(tc)
+
+        if not display_tests:
+            display_tests = [{"name": "test_generated.py", "code": raw_code, "scenario": "", "inputs": {}, "expected": ""}]
         
         context = {
             "request": request,
@@ -131,16 +175,55 @@ def view_report(request: Request, job_id: str):
             # Phase 4
             "mutation_score": mut.get("mutation_score", 0),
             "mutants_killed": mut.get("killed", 0),
+            "mutants_survived": mut.get("survived", 0),
             "total_mutants": mut.get("total_mutants", 0),
+            "strong_mutation": mut.get("strong_mutation", mut.get("killed", 0)),
+            "strong_mutation_pct": mut.get("strong_mutation_pct", 0),
+            "weak_mutation": mut.get("weak_mutation", mut.get("survived", 0)),
+            "weak_mutation_pct": mut.get("weak_mutation_pct", 0),
+            "mutation_tool": mut.get("tool", "builtin"),
+            "mutation_language": mut.get("language", job.get("sut_info", {}).get("language", "python")),
             "quality": mut.get("quality", "Good"),
-            "generated_tests": [
-                {"name": "test_generated.py", "code": raw_code}
-            ]
+            "exec_passed": exec_stats.get("passed", 0),
+            "exec_total": exec_stats.get("total", 0),
+            "exec_pass_rate": exec_stats.get("pass_rate", 0),
+            "phase4_trajectories": job.get("phase4_trajectories", []),
+            "generated_tests": display_tests,
+            "generated_test_code": raw_code,
         }
         return templates.TemplateResponse("job_detail_full.html", context)
     except Exception as e:
         logger.error(f"Error rendering report for {job_id}: {e}")
         return JSONResponse(status_code=500, content={"error": f"Internal Server Error: {str(e)}"})
+
+def _extract_to_stryker_executions(file_path: Path, job_id: str):
+    import zipfile
+    import tarfile
+    try:
+        dest_dir = BASE_DIR.parent / "stryker_executions" / job_id
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        
+        filename = file_path.name.lower()
+        if filename.endswith(".zip"):
+            with zipfile.ZipFile(file_path, 'r') as zf:
+                zf.extractall(dest_dir)
+            logger.info(f"Successfully extracted zip archive to {dest_dir}")
+        elif filename.endswith(".tar") or filename.endswith(".tar.gz") or filename.endswith(".tgz"):
+            with tarfile.open(file_path, 'r:*') as tf:
+                tf.extractall(dest_dir)
+            logger.info(f"Successfully extracted tar archive to {dest_dir}")
+        else:
+            # Fallback extraction attempts
+            try:
+                with zipfile.ZipFile(file_path, 'r') as zf:
+                    zf.extractall(dest_dir)
+                logger.info(f"Successfully extracted (fallback zip) to {dest_dir}")
+            except Exception:
+                with tarfile.open(file_path, 'r:*') as tf:
+                    tf.extractall(dest_dir)
+                logger.info(f"Successfully extracted (fallback tar) to {dest_dir}")
+    except Exception as e:
+        logger.error(f"Failed to extract SUT to stryker_executions for {job_id}: {e}")
 
 @app.post("/api/submit")
 async def submit_sut(file: UploadFile = File(...)):
@@ -154,6 +237,9 @@ async def submit_sut(file: UploadFile = File(...)):
         file_path = upload_dir / f"{job_id}_{file.filename}"
         with open(file_path, "wb") as f: f.write(content)
 
+        # Extract archive copy to stryker_executions
+        _extract_to_stryker_executions(file_path, job_id)
+
         job = {
             "job_id": job_id, "filename": file.filename,
             "uploaded_at": datetime.utcnow().isoformat() + "Z",
@@ -161,7 +247,7 @@ async def submit_sut(file: UploadFile = File(...)):
             "file_size": len(content)
         }
         job_storage.save_job(job)
-
+ 
         message = {"job_id": job_id, "sut_path": str(file_path), "status": "submitted"}
         conn = create_connection(logger=logger)
         ch = conn.channel()

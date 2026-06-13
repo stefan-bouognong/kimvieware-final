@@ -27,11 +27,11 @@ echo -e "${BLUE}╚════════════════════�
 
 echo -e "\n${BLUE}═══ 1. PYTHON VIRTUAL ENVIRONMENT${NC}"
 if [ -f "$PYTHON" ]; then
-    echo -e "${GREEN}✅ Venv trouvé${NC}: $VENV"
+    echo -e "${GREEN} Venv trouvé${NC}: $VENV"
     PYTHON_VERSION=$($PYTHON --version 2>&1)
-    echo -e "${GREEN}✅ Version${NC}: $PYTHON_VERSION"
+    echo -e "${GREEN} Version${NC}: $PYTHON_VERSION"
 else
-    echo -e "${RED}❌ Venv non trouvé${NC}: $VENV"
+    echo -e "${RED} Venv non trouvé${NC}: $VENV"
     exit 1
 fi
 
@@ -42,9 +42,9 @@ fi
 echo -e "\n${BLUE}═══ 2. Z3 SMT SOLVER${NC}"
 Z3_TEST=$($PYTHON -c "import z3; print(z3.get_version())" 2>&1 || echo "FAILED")
 if [[ $Z3_TEST != "FAILED" && $Z3_TEST == *"."* ]]; then
-    echo -e "${GREEN}✅ Z3 disponible${NC}: Version $Z3_TEST"
+    echo -e "${GREEN} Z3 disponible${NC}: Version $Z3_TEST"
 else
-    echo -e "${YELLOW}⚠️  Z3 détection échouée${NC}, test manuel..."
+    echo -e "${YELLOW}  Z3 détection échouée${NC}, test manuel..."
     Z3_MANUAL=$($PYTHON << 'EOFZ3'
 try:
     import z3
@@ -54,9 +54,9 @@ except ImportError:
 EOFZ3
 )
     if [[ $Z3_MANUAL == OK:* ]]; then
-        echo -e "${GREEN}✅ Z3 disponible${NC}: Version ${Z3_MANUAL#OK:}"
+        echo -e "${GREEN} Z3 disponible${NC}: Version ${Z3_MANUAL#OK:}"
     else
-        echo -e "${RED}❌ Z3 non disponible${NC}"
+        echo -e "${RED} Z3 non disponible${NC}"
     fi
 fi
 
@@ -73,21 +73,21 @@ LIBCLANG_PATHS=(
 LIBCLANG_FOUND=0
 for path in "${LIBCLANG_PATHS[@]}"; do
     if [ -f "$path" ]; then
-        echo -e "${GREEN}✅ libclang trouvé${NC}: $path"
+        echo -e "${GREEN} libclang trouvé${NC}: $path"
         LIBCLANG_FOUND=1
         break
     fi
 done
 
 if [ $LIBCLANG_FOUND -eq 0 ]; then
-    echo -e "${YELLOW}⚠️  libclang non trouvé${NC} (chercher dans /usr/lib/llvm-*/lib/)"
+    echo -e "${YELLOW}  libclang non trouvé${NC} (chercher dans /usr/lib/llvm-*/lib/)"
 fi
 
 LIBCLANG_PY_TEST=$($PYTHON -c "import clang.cindex; print('OK')" 2>&1 || echo "FAILED")
 if [[ $LIBCLANG_PY_TEST == "OK" ]]; then
-    echo -e "${GREEN}✅ Python libclang bindings disponibles${NC}"
+    echo -e "${GREEN} Python libclang bindings disponibles${NC}"
 else
-    echo -e "${RED}❌ Python libclang bindings non disponibles${NC}"
+    echo -e "${RED} Python libclang bindings non disponibles${NC}"
 fi
 
 # ===================================================================
@@ -97,9 +97,9 @@ fi
 echo -e "\n${BLUE}═══ 4. JAVALANG (Java Analysis)${NC}"
 JAVALANG_TEST=$($PYTHON -c "import javalang; print('OK')" 2>&1 || echo "FAILED")
 if [[ $JAVALANG_TEST == "OK" ]]; then
-    echo -e "${GREEN}✅ javalang disponible${NC}"
+    echo -e "${GREEN} javalang disponible${NC}"
 else
-    echo -e "${RED}❌ javalang non disponible${NC}"
+    echo -e "${RED} javalang non disponible${NC}"
 fi
 
 # ===================================================================
@@ -109,9 +109,9 @@ fi
 echo -e "\n${BLUE}═══ 5. JAVA COMPILER${NC}"
 if command -v javac &> /dev/null; then
     JAVAC_VERSION=$(javac -version 2>&1)
-    echo -e "${GREEN}✅ javac disponible${NC}: $JAVAC_VERSION"
+    echo -e "${GREEN} javac disponible${NC}: $JAVAC_VERSION"
 else
-    echo -e "${YELLOW}⚠️  javac non trouvé${NC} (optionnel pour compilation Java)"
+    echo -e "${YELLOW}  javac non trouvé${NC} (optionnel pour compilation Java)"
 fi
 
 # ===================================================================
@@ -121,9 +121,9 @@ fi
 echo -e "\n${BLUE}═══ 6. CLANG/LLVM (C Compiler)${NC}"
 if command -v clang-18 &> /dev/null; then
     CLANG_VERSION=$(clang-18 --version 2>&1 | head -1)
-    echo -e "${GREEN}✅ clang-18 disponible${NC}: $CLANG_VERSION"
+    echo -e "${GREEN} clang-18 disponible${NC}: $CLANG_VERSION"
 else
-    echo -e "${YELLOW}⚠️  clang-18 non trouvé${NC} (optionnel)"
+    echo -e "${YELLOW}  clang-18 non trouvé${NC} (optionnel)"
 fi
 
 # ===================================================================
@@ -133,9 +133,9 @@ fi
 echo -e "\n${BLUE}═══ 7. KLEE (C Symbolic Execution) [OPTIONNEL]${NC}"
 if command -v klee &> /dev/null; then
     KLEE_VERSION=$(klee --version 2>&1)
-    echo -e "${GREEN}✅ KLEE disponible${NC}: $KLEE_VERSION"
+    echo -e "${GREEN} KLEE disponible${NC}: $KLEE_VERSION"
 else
-    echo -e "${YELLOW}⚠️  KLEE non installé${NC}"
+    echo -e "${YELLOW}  KLEE non installé${NC}"
     echo "   Fallback: libclang (AST) + Z3 (vérification)"
     echo "   Installation: voir ADVANCED_SETUP.md"
 fi
@@ -146,9 +146,9 @@ fi
 
 echo -e "\n${BLUE}═══ 8. JBSE (Java Symbolic Execution) [OPTIONNEL]${NC}"
 if [ -n "$JBSE_HOME" ] && [ -d "$JBSE_HOME" ]; then
-    echo -e "${GREEN}✅ JBSE_HOME configuré${NC}: $JBSE_HOME"
+    echo -e "${GREEN} JBSE_HOME configuré${NC}: $JBSE_HOME"
 else
-    echo -e "${YELLOW}⚠️  JBSE_HOME non configuré${NC}"
+    echo -e "${YELLOW}  JBSE_HOME non configuré${NC}"
     echo "   Fallback: javalang (AST) + Z3 (vérification)"
     echo "   Installation: voir ADVANCED_SETUP.md"
 fi
@@ -161,13 +161,13 @@ echo -e "\n${BLUE}═══ 9. MODULE EXTRACTION${NC}"
 cd "$SCRIPT_DIR"
 IMPORT_TEST=$(PYTHONPATH=src $PYTHON -c "
 from extractors import PythonExtractor, CExtractor, JavaExtractor
-print('✅ Imports OK')
+print(' Imports OK')
 " 2>&1 || echo "FAILED")
 
-if [[ $IMPORT_TEST == *"✅"* ]]; then
+if [[ $IMPORT_TEST == *""* ]]; then
     echo -e "${GREEN}$IMPORT_TEST${NC}"
 else
-    echo -e "${RED}❌ Imports échoués${NC}: $IMPORT_TEST"
+    echo -e "${RED} Imports échoués${NC}: $IMPORT_TEST"
 fi
 
 # ===================================================================
@@ -178,12 +178,12 @@ echo -e "\n${BLUE}╔═══════════════════�
 echo -e "${BLUE}║  RÉSUMÉ − Status Opérationnel                                     ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════════════╝${NC}"
 
-echo -e "\n${GREEN}✅ EXTRACTEURS FONCTIONNELS:${NC}"
+echo -e "\n${GREEN} EXTRACTEURS FONCTIONNELS:${NC}"
 echo -e "  • PythonExtractor    — AST + Z3 (${GREEN}COMPLET${NC})"
 echo -e "  • CExtractor         — libclang + Z3 (${GREEN}COMPLET${NC})"
 echo -e "  • JavaExtractor      — javalang + Z3 (${GREEN}COMPLET${NC})"
 
-echo -e "\n${YELLOW}⚠️  OPTIONS AVANCÉES:${NC}"
+echo -e "\n${YELLOW}  OPTIONS AVANCÉES:${NC}"
 echo -e "  • KLEE               — Installation optionnelle (voir ADVANCED_SETUP.md)"
 echo -e "  • JBSE               — Installation optionnelle (voir ADVANCED_SETUP.md)"
 
@@ -196,4 +196,4 @@ echo -e "  2. Pour installer KLEE ou JBSE (optionnel):"
 echo -e "     ${YELLOW}cat ADVANCED_SETUP.md${NC}"
 echo -e ""
 
-echo -e "${GREEN}✅ Configuration OK − Prêt pour l'extraction${NC}\n"
+echo -e "${GREEN} Configuration OK − Prêt pour l'extraction${NC}\n"

@@ -66,7 +66,7 @@ class SGATSService(MicroserviceBase):
         reduced_set, stats = self.sgats.reduce(trajectories)
         
         self.logger.info(
-            f"[{job_id}] ✅ Reduced {stats['initial_count']} → {stats['reduced_count']} "
+            f"[{job_id}]  Reduced {stats['initial_count']} → {stats['reduced_count']} "
             f"({stats['reduction_rate']*100:.1f}% reduction)"
         )
         

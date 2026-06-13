@@ -29,10 +29,10 @@ class ServiceStarter:
                         break
         
         if not script.exists():
-            print(f"❌ {name}: Script not found at {script}")
+            print(f" {name}: Script not found at {script}")
             return False
         
-        print(f"🚀 Starting {name}...")
+        print(f" Starting {name}...")
         try:
             # Set environment variables
             env = os.environ.copy()
@@ -49,10 +49,10 @@ class ServiceStarter:
             )
             
             self.processes[name] = proc
-            print(f"✅ {name} started (PID: {proc.pid})")
+            print(f" {name} started (PID: {proc.pid})")
             return True
         except Exception as e:
-            print(f"❌ {name}: {e}")
+            print(f" {name}: {e}")
             return False
     
     def start_all(self):
@@ -75,11 +75,11 @@ class ServiceStarter:
                 started_count += 1
             time.sleep(1)  # Give each service time to start
         
-        print(f"\n✅ Started {started_count}/{len(services)} services\n")
+        print(f"\n Started {started_count}/{len(services)} services\n")
         
         # Monitor services
         print("="*80)
-        print("  📊 SERVICE MONITORING")
+        print("   SERVICE MONITORING")
         print("="*80 + "\n")
         
         try:
@@ -88,14 +88,14 @@ class ServiceStarter:
                 for name, proc in self.processes.items():
                     if proc.poll() is None:  # Still running
                         alive += 1
-                        status = "✅ Running"
+                        status = " Running"
                     else:
-                        status = f"❌ Stopped (code: {proc.returncode})"
+                        status = f" Stopped (code: {proc.returncode})"
                     
                     print(f"  {name:<30} {status}")
                 
                 if alive == 0:
-                    print("\n⚠️  All services have stopped!")
+                    print("\n  All services have stopped!")
                     break
                 
                 print(f"\n  Active: {alive}/{len(self.processes)} services")
@@ -114,10 +114,10 @@ class ServiceStarter:
                 proc.terminate()
                 try:
                     proc.wait(timeout=5)
-                    print("✅")
+                    print("")
                 except subprocess.TimeoutExpired:
                     proc.kill()
-                    print("❌ (force killed)")
+                    print(" (force killed)")
 
 def main():
     starter = ServiceStarter()

@@ -19,7 +19,7 @@ def collect_results():
     final_evaluation = []
 
     for project in academic_projects:
-        print(f"\n🔍 Analyse de l'étude de cas : {project['name']}")
+        print(f"\n Analyse de l'étude de cas : {project['name']}")
         
         try:
             # 1. Soumission réelle à la plateforme
@@ -50,20 +50,20 @@ def collect_results():
                         "Temps": f"{int(time.time() - start_time)}s"
                     }
                     final_evaluation.append(res)
-                    print(f"   ✅ Terminé : Mutation {mutation}% | Réduction {reduction:.1f}%")
+                    print(f"    Terminé : Mutation {mutation}% | Réduction {reduction:.1f}%")
                     break
                 
                 if time.time() - start_time > 180: # 3 min timeout
-                    print("   ⚠️ Timeout")
+                    print("    Timeout")
                     break
                 time.sleep(5)
 
         except Exception as e:
-            print(f"   ❌ Erreur de connexion : Assurez-vous que l'Orchestrateur tourne.")
+            print(f"    Erreur de connexion : Assurez-vous que l'Orchestrateur tourne.")
 
     # Affichage du tableau pour le mémoire
     print("\n" + "="*90)
-    print("📋 TABLEAU DE SYNTHÈSE DES RÉSULTATS (ÉTUDES DE CAS RÉELLES)")
+    print(" TABLEAU DE SYNTHÈSE DES RÉSULTATS (ÉTUDES DE CAS RÉELLES)")
     print("="*90)
     fmt = "{:<30} | {:<10} | {:<10} | {:<10} | {:<10} | {:<10}"
     print(fmt.format("Programme Académique", "Langage", "Extraits", "Optimisés", "Réduction", "Mutation"))

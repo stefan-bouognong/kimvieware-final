@@ -38,7 +38,7 @@ class MonitorService(MicroserviceBase):
         # Override logger from MicroserviceBase to use its setup
         self.logger = setup_logger(self.service_name)
         
-        self.logger.info(f"🚀 {self.service_name} initialized. Monitoring {len(self.monitor_queues)} queues.")
+        self.logger.info(f" {self.service_name} initialized. Monitoring {len(self.monitor_queues)} queues.")
     
     def _connect(self):
         """Connect to RabbitMQ and declare all monitor queues"""
@@ -95,12 +95,12 @@ class MonitorService(MicroserviceBase):
 
     def start(self):
         """Start consuming from all monitor queues"""
-        self.logger.info(f"🎬 Starting {self.service_name}...")
+        self.logger.info(f" Starting {self.service_name}...")
         self._connect()
         self.channel.basic_qos(prefetch_count=1)
         
         for queue_name in self.monitor_queues:
-            self.logger.info(f"✨ Ready! Waiting on '{queue_name}'...")
+            self.logger.info(f" Ready! Waiting on '{queue_name}'...")
             self.channel.basic_consume(queue=queue_name, on_message_callback=self._callback_wrapper(queue_name))
             
         try:
@@ -124,7 +124,7 @@ class MonitorService(MicroserviceBase):
                 ch.basic_ack(delivery_tag=method.delivery_tag)
                 
             except Exception as e:
-                self.logger.error(f"❌ Error in monitor callback for queue '{queue_name}': {e}", exc_info=True)
+                self.logger.error(f" Error in monitor callback for queue '{queue_name}': {e}", exc_info=True)
                 ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False) # Do not requeue on error
         return callback
 

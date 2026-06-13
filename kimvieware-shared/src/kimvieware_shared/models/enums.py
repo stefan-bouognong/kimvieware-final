@@ -40,4 +40,5 @@ class Language(str, Enum):
     C = "c"
     CPP = "cpp"
     JAVA = "java"
+    JAVASCRIPT = "javascript"
     UNKNOWN = "unknown"

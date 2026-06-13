@@ -1,164 +1,121 @@
 """
 Mutation Testing
-Evaluates test suite quality using mutation analysis
+Evaluates test suite quality using language-specific mutation tools.
+
+Supported languages: Python (MutPy), JavaScript (Stryker), Java (PIT), C, C++ (builtin)
 """
-import subprocess
-import re
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
+
+from executors.language_runners import get_runner, MUTATION_TOOLS, _quality_label
+
 
 class MutationTester:
     """
-    Mutation Testing using MutPy
-    
-    Generates mutants of the SUT and checks if tests detect them
-    Mutation Score = (Killed Mutants / Total Mutants) × 100%
+    Multi-language mutation testing orchestrator.
+
+    Mutation Score = (Killed / (Total - Equivalent - Timeout)) × 100%
+    Strong mutation = killed mutants (tests detect the fault)
+    Weak mutation   = survived mutants (tests miss the fault)
     """
-    
+
+    SUPPORTED_LANGUAGES = ['python', 'javascript', 'java', 'c', 'cpp']
+
     def __init__(self):
         pass
-    
+
+    def detect_language(self, sut_path: Path, sut_info: dict = None) -> str:
+        """Detect programming language from sut_info or source files."""
+        if sut_info and sut_info.get('language'):
+            lang = sut_info['language'].lower()
+            if lang in self.SUPPORTED_LANGUAGES:
+                return lang
+
+        extensions = {
+            '.py': 'python',
+            '.java': 'java',
+            '.js': 'javascript',
+            '.ts': 'javascript',
+            '.c': 'c',
+            '.cpp': 'cpp',
+            '.cc': 'cpp',
+            '.cxx': 'cpp',
+        }
+
+        counts = {lang: 0 for lang in self.SUPPORTED_LANGUAGES}
+        ignore = {'node_modules', 'venv', '.venv', '__pycache__', 'dist', 'build'}
+
+        for f in sut_path.rglob('*'):
+            if not f.is_file() or any(d in f.parts for d in ignore):
+                continue
+            lang = extensions.get(f.suffix.lower())
+            if lang:
+                counts[lang] += 1
+
+        if max(counts.values()) == 0:
+            return 'python'
+
+        return max(counts, key=counts.get)
+
     def run_mutation_testing(
         self,
         sut_path: Path,
         test_file: Path,
-        target_modules: list = None
+        sut_info: dict = None,
+        job_id: str = None,
+        test_cases: list = None,
     ) -> Dict:
         """
-        Run mutation testing
-        
+        Run mutation testing with the appropriate tool for the detected language.
+
         Args:
-            sut_path: Path to SUT source code
-            test_file: Path to test file
-            target_modules: List of modules to mutate (e.g., ['src.routes.auth'])
-        
+            sut_path: Path to extracted SUT source code
+            test_file: Path to generated test file
+            sut_info: SUT metadata from Phase 0 (contains language)
+            job_id: Job identifier for Stryker executions path
+
         Returns:
-            Mutation testing statistics
+            Mutation testing statistics including strong/weak mutation counts
         """
-        
+        language = self.detect_language(sut_path, sut_info)
+        tool = MUTATION_TOOLS.get(language, 'builtin')
+
         print(f"\n🧬 Mutation Testing")
         print(f"{'='*60}")
-        print(f"SUT: {sut_path}")
-        print(f"Tests: {test_file}")
-        
-        if not target_modules:
-            # Default: mutate main modules
-            target_modules = self._find_target_modules(sut_path)
-        
-        print(f"Target modules: {', '.join(target_modules)}")
-        
-        # Run MutPy (simplified - full MutPy requires complex setup)
-        # For demo, we simulate mutation testing results
-        
-        print(f"\n🔬 Generating mutants...")
-        
-        # Simulate mutation analysis
-        stats = self._simulate_mutation_testing(sut_path, len(target_modules))
-        
-        print(f"\n📊 Mutation Testing Results:")
-        print(f"   Total mutants: {stats['total_mutants']}")
-        print(f"   Killed: {stats['killed']}")
-        print(f"   Survived: {stats['survived']}")
-        print(f"   Timeout: {stats['timeout']}")
-        print(f"   Mutation Score: {stats['mutation_score']:.1f}%")
-        
-        # Quality assessment
-        if stats['mutation_score'] >= 90:
-            quality = "Excellent"
-        elif stats['mutation_score'] >= 80:
-            quality = "Good"
-        elif stats['mutation_score'] >= 70:
-            quality = "Acceptable"
+        print(f"  SUT:       {sut_path}")
+        print(f"  Tests:     {test_file}")
+        print(f"  Language:  {language}")
+        print(f"  Tool:      {tool}")
+        print(f"{'='*60}")
+
+        runner = get_runner(language)
+
+        if language == 'javascript':
+            stats = runner.run(sut_path, test_file, job_id=job_id, test_cases=test_cases)
         else:
-            quality = "Needs Improvement"
-        
-        print(f"   Quality: {quality}")
+            stats = runner.run(sut_path, test_file, test_cases=test_cases)
+
+        # Ensure all required fields are present
+        stats.setdefault('language', language)
+        stats.setdefault('tool', tool)
+        stats.setdefault('quality', _quality_label(stats.get('mutation_score', 0)))
+        stats.setdefault('strong_mutation', stats.get('killed', 0))
+        stats.setdefault('weak_mutation', stats.get('survived', 0))
+        stats.setdefault('strong_mutation_pct', round(
+            (stats.get('killed', 0) / max(1, stats.get('total_mutants', 1))) * 100, 1
+        ))
+        stats.setdefault('weak_mutation_pct', round(
+            (stats.get('survived', 0) / max(1, stats.get('total_mutants', 1))) * 100, 1
+        ))
+
+        print(f"\n📊 Mutation Testing Results:")
+        print(f"   Total mutants:    {stats['total_mutants']}")
+        print(f"   Strong (killed):  {stats['strong_mutation']} ({stats['strong_mutation_pct']}%)")
+        print(f"   Weak (survived):  {stats['weak_mutation']} ({stats['weak_mutation_pct']}%)")
+        print(f"   Timeout:          {stats.get('timeout', 0)}")
+        print(f"   Mutation Score:   {stats['mutation_score']:.1f}%")
+        print(f"   Quality:          {stats['quality']}")
+        print(f"   Tool:             {stats.get('tool', tool)}")
         print(f"{'='*60}\n")
-        
+
         return stats
-    
-    def _find_target_modules(self, sut_path: Path) -> list:
-        """Find Python modules to mutate"""
-        modules = []
-        
-        # Find all .py files in src/
-        src_dir = sut_path / 'src'
-        if src_dir.exists():
-            for py_file in src_dir.rglob('*.py'):
-                if py_file.name != '__init__.py':
-                    # Convert path to module name
-                    rel_path = py_file.relative_to(sut_path)
-                    module = str(rel_path.with_suffix('')).replace('/', '.')
-                    modules.append(module)
-        
-        return modules[:3]  # Limit to 3 modules for demo
-    
-    def _simulate_mutation_testing(self, sut_path: Path, module_count: int) -> Dict:
-        """
-        Calcul dynamique du score de mutation pour Python, Java et C.
-        """
-        import time
-        import random
-        random.seed(time.time())
-
-        # 1. Détection des fichiers source par langage
-        extensions = {
-            'python': ['.py'],
-            'java': ['.java'],
-            'c': ['.c', '.h', '.cpp', '.hpp']
-        }
-        
-        stats_par_langue = {
-            'lines': 0,
-            'branches': 0,
-            'files_count': 0
-        }
-
-        for lang, exts in extensions.items():
-            for ext in exts:
-                files = list(sut_path.rglob(f"*{ext}"))
-                stats_par_langue['files_count'] += len(files)
-                for f in files:
-                    try:
-                        content = f.read_text()
-                        stats_par_langue['lines'] += len(content.splitlines())
-                        # Détection des branches (syntaxe multi-langage)
-                        stats_par_langue['branches'] += content.count('if ') + content.count('if(') + content.count('case ')
-                    except:
-                        continue
-
-        # 2. Calcul du nombre de mutants (proportionnel à la complexité réelle)
-        # Si aucun fichier trouvé (ex: chemin invalide), on met des valeurs par défaut minimales
-        total_lines = max(50, stats_par_langue['lines'])
-        total_branches = max(5, stats_par_langue['branches'])
-        
-        total_mutants = (total_lines // 5) + (total_branches * 2)
-        
-        # 3. Calcul du score de mutation avec forte variabilité
-        # On utilise le nombre de fichiers et de branches pour créer un score unique
-        import random
-        import time
-        # Graine basée sur le nom du projet et le temps pour garantir l'unicité
-        random.seed(str(sut_path) + str(time.time()))
-        
-        # Plus le projet est gros, plus il y a de chances que certains mutants survivent
-        base_performance = random.uniform(82.0, 96.0) # Performance de base variable
-        complexity_penalty = min(10.0, stats_par_langue['branches'] / 5.0)
-        
-        final_score = base_performance - complexity_penalty + random.uniform(-2.0, 2.0)
-        final_score = max(70.0, min(98.5, final_score)) # Entre 70% et 98.5%
-        
-        killed = int(total_mutants * (final_score / 100))
-        survived = total_mutants - killed
-        
-        return {
-            'total_mutants': total_mutants,
-            'killed': killed,
-            'survived': survived,
-            'timeout': int(total_mutants * random.uniform(0, 0.05)),
-            'mutation_score': round(final_score, 1),
-            'detected_files': stats_par_langue['files_count'],
-            'analyzed_lines': total_lines,
-            'complexity_index': stats_par_langue['branches'],
-            'method': 'dynamic_academic_evaluator'
-        }

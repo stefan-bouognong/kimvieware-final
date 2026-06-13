@@ -1,46 +1,46 @@
-# 📋 PLAN D'ACTION COMPLET - TESTS DES SERVICES KIMVIWARE
+#  PLAN D'ACTION COMPLET - TESTS DES SERVICES KIMVIWARE
 
 **Date**: 23 Janvier 2026  
-**Statut**: ✅ Analysé et Prêt pour Exécution  
+**Statut**:  Analysé et Prêt pour Exécution  
 **Durée Estimée**: 2-4 heures (selon les options choisies)
 
 ---
 
 ## 🎯 OBJECTIFS
 
-1. ✅ Vérifier l'état de l'infrastructure (RabbitMQ, MongoDB, Docker)
-2. ✅ Tester chaque service individuellement
-3. ✅ Tester le pipeline complet (Phase 0-4)
-4. ✅ Valider les résultats et métriques
-5. ✅ Générer un rapport détaillé
+1.  Vérifier l'état de l'infrastructure (RabbitMQ, MongoDB, Docker)
+2.  Tester chaque service individuellement
+3.  Tester le pipeline complet (Phase 0-4)
+4.  Valider les résultats et métriques
+5.  Générer un rapport détaillé
 
 ---
 
-## 📊 ANALYSE DE L'INFRASTRUCTURE ACTUELLE
+##  ANALYSE DE L'INFRASTRUCTURE ACTUELLE
 
 ### Services Détectés
 
 | Service | Type | Port | Status | Requirements |
 |---------|------|------|--------|--------------|
-| **Orchestrator** | API Gateway | 8080 | ✅ Prêt | FastAPI, Uvicorn |
-| **Phase 0 Validator** | Language Detection | RabbitMQ | ✅ Prêt | python-magic |
-| **Phase 1 Extractor** | Trajectory Extraction | RabbitMQ | ✅ Prêt | Angr, NetworkX |
-| **Phase 2 SGATS** | Path Reduction | RabbitMQ | ✅ Prêt | NumPy, SciPy |
-| **Phase 3 EvoPath** | Genetic Optimization | RabbitMQ | ✅ Prêt | NumPy, DEAP |
-| **Phase 4 Executor** | Test Generation | RabbitMQ | ✅ Prêt | pytest, MutPy |
-| **RabbitMQ** | Message Broker | 5672, 15672 | ✅ Déployé | Docker |
-| **MongoDB** | Database | 27017 | ✅ Déployé | Docker |
-| **Redis** | Cache | 6379 | ✅ Déployé | Docker |
-| **MinIO** | Object Storage | 9000 | ✅ Déployé | Docker |
+| **Orchestrator** | API Gateway | 8080 |  Prêt | FastAPI, Uvicorn |
+| **Phase 0 Validator** | Language Detection | RabbitMQ |  Prêt | python-magic |
+| **Phase 1 Extractor** | Trajectory Extraction | RabbitMQ |  Prêt | Angr, NetworkX |
+| **Phase 2 SGATS** | Path Reduction | RabbitMQ |  Prêt | NumPy, SciPy |
+| **Phase 3 EvoPath** | Genetic Optimization | RabbitMQ |  Prêt | NumPy, DEAP |
+| **Phase 4 Executor** | Test Generation | RabbitMQ |  Prêt | pytest, MutPy |
+| **RabbitMQ** | Message Broker | 5672, 15672 |  Déployé | Docker |
+| **MongoDB** | Database | 27017 |  Déployé | Docker |
+| **Redis** | Cache | 6379 |  Déployé | Docker |
+| **MinIO** | Object Storage | 9000 |  Déployé | Docker |
 
 ### Fichiers de Test Existants
 
 ```
-✅ test_complete_pipeline.py     - Test du pipeline complet (40-50 min)
-✅ test_full_system.py           - Tests multi-SUT (2-3 heures)
-✅ FULL_TEST_REPORT.py           - Analyse système (15s)
-✅ diagnose.py                   - Diagnostic infrastructure (5s)
-✅ generate_report.py            - Rapport système (3s)
+ test_complete_pipeline.py     - Test du pipeline complet (40-50 min)
+ test_full_system.py           - Tests multi-SUT (2-3 heures)
+ FULL_TEST_REPORT.py           - Analyse système (15s)
+ diagnose.py                   - Diagnostic infrastructure (5s)
+ generate_report.py            - Rapport système (3s)
 ```
 
 ### SUTs (Systems Under Test) Disponibles
@@ -53,7 +53,7 @@
    ✓ room-service/        - Room management
    ✓ timetable-service/   - Timetable service
 
-🔧 C Service:
+ C Service:
    ✓ auth-service-c/      - C implementation
 
 ☕ Java Service:
@@ -62,7 +62,7 @@
 
 ---
 
-## 🔍 VÉRIFICATION DES FICHIERS CLÉS
+##  VÉRIFICATION DES FICHIERS CLÉS
 
 ### 1. **Services Microservices (Phase 0-4)**
 
@@ -79,7 +79,7 @@
 
 | Fichier | Statut | Dépendances |
 |---------|--------|-------------|
-| `kimvieware-orchestrator/run_orchestrator.py` | ✅ Prêt | FastAPI, Uvicorn |
+| `kimvieware-orchestrator/run_orchestrator.py` |  Prêt | FastAPI, Uvicorn |
 | `kimvieware-orchestrator/src/api/enhanced_gateway.py` | 📝 À Vérifier | FastAPI |
 | `kimvieware-orchestrator/src/api/gateway.py` | 📝 À Vérifier | FastAPI |
 
@@ -87,21 +87,21 @@
 
 | Fichier | Statut | Contenu |
 |---------|--------|---------|
-| `kimvieware-infrastructure/docker-compose.yml` | ✅ Prêt | 8 services Docker |
-| `kimvieware-infrastructure/mongodb/init-mongo.js` | ✅ Prêt | Initialisation DB |
-| `kimvieware-infrastructure/rabbitmq/rabbitmq.conf` | ✅ Prêt | Config RabbitMQ |
+| `kimvieware-infrastructure/docker-compose.yml` |  Prêt | 8 services Docker |
+| `kimvieware-infrastructure/mongodb/init-mongo.js` |  Prêt | Initialisation DB |
+| `kimvieware-infrastructure/rabbitmq/rabbitmq.conf` |  Prêt | Config RabbitMQ |
 
 ### 4. **Modèles Partagés**
 
 | Fichier | Statut | Contenu |
 |---------|--------|---------|
-| `kimvieware-shared/src/models/job_message.py` | ✅ Prêt | Message models |
-| `kimvieware-shared/src/models/trajectory.py` | ✅ Prêt | Trajectory models |
-| `kimvieware-shared/src/models/sut_info.py` | ✅ Prêt | SUT info models |
+| `kimvieware-shared/src/models/job_message.py` |  Prêt | Message models |
+| `kimvieware-shared/src/models/trajectory.py` |  Prêt | Trajectory models |
+| `kimvieware-shared/src/models/sut_info.py` |  Prêt | SUT info models |
 
 ---
 
-## 📋 PLAN D'ACTION DÉTAILLÉ
+##  PLAN D'ACTION DÉTAILLÉ
 
 ### **ÉTAPE 1: VÉRIFICATION PRÉALABLE (5-10 min)**
 
@@ -381,7 +381,7 @@ docker logs kimvieware_mongodb -f
 
 ---
 
-## 🚀 PLAN D'EXÉCUTION RECOMMANDÉ
+##  PLAN D'EXÉCUTION RECOMMANDÉ
 
 ### **Option A: Test Rapide (15 min)**
 ```
@@ -426,24 +426,24 @@ docker logs kimvieware_mongodb -f
 ## 📝 CHECKLIST DE DÉMARRAGE
 
 ```bash
-# ✅ PRÉ-REQUIS
+#  PRÉ-REQUIS
 [ ] Docker en cours d'exécution
 [ ] docker-compose up -d (infrastructure déployée)
 [ ] Python 3.9+ installé
 [ ] Tous les venv configurés
 
-# ✅ VÉRIFICATION
+#  VÉRIFICATION
 [ ] diagnose.py exécuté avec succès
 [ ] Tous les ports accessibles
 [ ] Tous les services sains
 
-# ✅ EXÉCUTION
+#  EXÉCUTION
 [ ] Sélectionner l'option (A/B/C/D)
 [ ] Lancer les tests
 [ ] Monitorer les logs
 [ ] Analyser les résultats
 
-# ✅ RAPPORT
+#  RAPPORT
 [ ] Résultats générés
 [ ] Métriques valides
 [ ] Documentation mise à jour
@@ -451,22 +451,22 @@ docker logs kimvieware_mongodb -f
 
 ---
 
-## 📊 MÉTRIQUES ATTENDUES
+##  MÉTRIQUES ATTENDUES
 
 | Métrique | Attendu | Acceptable | Critique |
 |----------|---------|-----------|----------|
-| Phase 0 Duration | <5s | <10s | >15s ❌ |
-| Phase 1 Duration | 10-30s | <60s | >120s ❌ |
-| Phase 2 Reduction | 80-90% | >70% | <50% ❌ |
-| Phase 3 Reduction | 33-50% | >20% | <10% ❌ |
-| Phase 4 Mutation | >90% | >85% | <80% ❌ |
-| Coverage | 95%+ | 90%+ | <85% ❌ |
-| API Response | <500ms | <1000ms | >2000ms ❌ |
-| Memory Usage | <2GB | <4GB | >8GB ❌ |
+| Phase 0 Duration | <5s | <10s | >15s  |
+| Phase 1 Duration | 10-30s | <60s | >120s  |
+| Phase 2 Reduction | 80-90% | >70% | <50%  |
+| Phase 3 Reduction | 33-50% | >20% | <10%  |
+| Phase 4 Mutation | >90% | >85% | <80%  |
+| Coverage | 95%+ | 90%+ | <85%  |
+| API Response | <500ms | <1000ms | >2000ms  |
+| Memory Usage | <2GB | <4GB | >8GB  |
 
 ---
 
-## 🔧 COMMANDES RAPIDES
+##  COMMANDES RAPIDES
 
 ```bash
 # Démarrer l'infrastructure
@@ -525,7 +525,7 @@ pip install -r requirements.txt -e ../kimvieware-shared
 
 ---
 
-## ✅ PROCHAINES ÉTAPES
+##  PROCHAINES ÉTAPES
 
 Après ce plan:
 1. [ ] Documenter les résultats

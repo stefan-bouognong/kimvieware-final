@@ -39,7 +39,7 @@ class JobStorage:
             self.jobs.create_index("created_at")
             logger.info("MongoDB indexes ensured for 'jobs' collection.")
         except Exception as e:
-            logger.warning(f"⚠️  JobStorage: Index creation skipped: {e}")
+            logger.warning(f"  JobStorage: Index creation skipped: {e}")
     
     def save_job(self, job_data: Dict[str, Any]):
         """Save or update job data"""

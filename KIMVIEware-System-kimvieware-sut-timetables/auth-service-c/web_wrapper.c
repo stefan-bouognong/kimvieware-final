@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
                              &answer_to_connection, NULL, MHD_OPTION_END);
     if (NULL == daemon) return 1;
 
-    printf("🚀 C Auth Web Service started on port %d\n", port);
+    printf(" C Auth Web Service started on port %d\n", port);
     getchar(); // Keep running
     MHD_stop_daemon(daemon);
     return 0;

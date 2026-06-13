@@ -2,17 +2,17 @@
 ║                                                                              ║
 ║         🎯 KIMVIWARE - MULTI-LANGUAGE SYMBOLIC EXECUTION FRAMEWORK          ║
 ║                                                                              ║
-║                   ✅ READY FOR TESTING - START HERE                         ║
+║                    READY FOR TESTING - START HERE                         ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Framework Status: ✅ COMPLETE & OPERATIONAL
-Infrastructure:  ✅ ALL SERVICES HEALTHY
-Tests Ready:     ✅ 5 UTILITY SCRIPTS AVAILABLE
+Framework Status:  COMPLETE & OPERATIONAL
+Infrastructure:   ALL SERVICES HEALTHY
+Tests Ready:      5 UTILITY SCRIPTS AVAILABLE
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🚀 3-STEP QUICK START:
+ 3-STEP QUICK START:
 
 1. VERIFY INFRASTRUCTURE (30 seconds)
    ──────────────────────────────────
@@ -40,7 +40,7 @@ Tests Ready:     ✅ 5 UTILITY SCRIPTS AVAILABLE
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📋 ALL AVAILABLE TEST SCRIPTS:
+ ALL AVAILABLE TEST SCRIPTS:
 
 TEST SCRIPTS:
   ► test_complete_pipeline.py    - Main test (auth-service, 40-50m)
@@ -89,7 +89,7 @@ OPTION D: Multi-SUT Test (2-3 hours)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📊 WHAT TO EXPECT:
+ WHAT TO EXPECT:
 
 Phase 1 - TRAJECTORY EXTRACTION
   Input:  auth-service source code
@@ -118,10 +118,10 @@ TOTAL: 93% path reduction + 93% mutation score
 
 🏗️ INFRASTRUCTURE STATUS:
 
-✅ RabbitMQ (5672)      - Message Queue System (HEALTHY)
-✅ MongoDB (27017)      - Job & Trajectory Storage (HEALTHY)
-✅ Redis (6379)         - Caching Layer (HEALTHY)
-✅ MinIO (9000)         - Object Storage (HEALTHY)
+ RabbitMQ (5672)      - Message Queue System (HEALTHY)
+ MongoDB (27017)      - Job & Trajectory Storage (HEALTHY)
+ Redis (6379)         - Caching Layer (HEALTHY)
+ MinIO (9000)         - Object Storage (HEALTHY)
 
 All services verified and operational.
 
@@ -139,7 +139,7 @@ Total: 3,500+ lines of code, 317+ branches
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔧 MONITORING DURING TEST:
+ MONITORING DURING TEST:
 
 In another terminal, monitor progress:
 
@@ -155,7 +155,7 @@ In another terminal, monitor progress:
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✅ SUCCESS CRITERIA:
+ SUCCESS CRITERIA:
 
 Test passes when:
   ✓ All 4 phases complete
@@ -168,7 +168,7 @@ Test passes when:
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔍 TROUBLESHOOTING:
+ TROUBLESHOOTING:
 
 If infrastructure is not healthy:
   $ python ~/KIMVIWARE/diagnose.py
@@ -227,7 +227,7 @@ Phase 4: Execution & Mutation Testing
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🚀 RECOMMENDED FIRST ACTION:
+ RECOMMENDED FIRST ACTION:
 
 Step 1: Verify everything is ready
   $ python ~/KIMVIWARE/diagnose.py
@@ -247,14 +247,14 @@ Expected outcome:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Framework Status Summary:
-  ✅ Infrastructure:       OPERATIONAL & HEALTHY
-  ✅ Framework:            COMPLETE (5 phases)
-  ✅ Algorithms:           SGATS + EvoPath-GA ready
-  ✅ SUTs:                 5 services available
-  ✅ Test Scripts:         5 utilities ready
-  ✅ Documentation:        Complete
+   Infrastructure:       OPERATIONAL & HEALTHY
+   Framework:            COMPLETE (5 phases)
+   Algorithms:           SGATS + EvoPath-GA ready
+   SUTs:                 5 services available
+   Test Scripts:         5 utilities ready
+   Documentation:        Complete
 
-OVERALL: ✅ READY FOR EXECUTION
+OVERALL:  READY FOR EXECUTION
 
 For interactive guide: python ~/KIMVIWARE/TESTING_GUIDE.py
 For detailed docs:     cat ~/KIMVIWARE/README_TESTING.md

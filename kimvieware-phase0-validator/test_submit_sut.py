@@ -11,7 +11,7 @@ from pathlib import Path
 sut_path = Path.home() / "KIMVIWARE" / "KIMVIEware-System-kimvieware-sut-timetables" / "auth-service.zip"
 
 if not sut_path.exists():
-    print(f"❌ File not found: {sut_path}")
+    print(f" File not found: {sut_path}")
     print("Creating ZIP now...")
     import subprocess
     subprocess.run([
@@ -44,7 +44,7 @@ channel.basic_publish(
     properties=pika.BasicProperties(delivery_mode=2)
 )
 
-print(f"✅ Submitted: {message['job_id']}")
+print(f" Submitted: {message['job_id']}")
 print(f"   SUT: {sut_path.name}")
 print(f"   Size: {sut_path.stat().st_size / 1024:.1f} KB")
 

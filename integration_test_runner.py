@@ -6,7 +6,7 @@ import sys
 
 def run_integration_test():
     print("\n" + "="*60)
-    print("🚀 TEST D'INTÉGRATION RÉEL MULTI-LANGAGES (Py, Java, C)")
+    print(" TEST D'INTÉGRATION RÉEL MULTI-LANGAGES (Py, Java, C)")
     print("="*60)
 
     # Configuration des ports
@@ -29,13 +29,13 @@ def run_integration_test():
         url = f"http://localhost:{PYTHON_PORT}/auth/register"
         resp = requests.post(url, json=user_data, timeout=5)
         if resp.status_code in [200, 201]:
-            print(f"   ✅ Succès : Utilisateur {user_data['username']} créé.")
+            print(f"    Succès : Utilisateur {user_data['username']} créé.")
             results.append({"step": "Register Python", "status": "SUCCESS"})
         else:
-            print(f"   ⚠️  Erreur {resp.status_code} : {resp.text}")
+            print(f"     Erreur {resp.status_code} : {resp.text}")
             results.append({"step": "Register Python", "status": "FAILED"})
     except Exception as e:
-        print(f"   ❌ Erreur de connexion : {e}")
+        print(f"    Erreur de connexion : {e}")
         results.append({"step": "Register Python", "status": "ERROR"})
 
     # 2. Connexion sur le service Java (Wrapper)
@@ -45,13 +45,13 @@ def run_integration_test():
         login_data = {"username": user_data["username"], "password": user_data["password"]}
         resp = requests.post(url, json=login_data, timeout=5)
         if resp.status_code == 200:
-            print(f"   ✅ Succès : Le service Java a validé le compte créé par Python !")
+            print(f"    Succès : Le service Java a validé le compte créé par Python !")
             results.append({"step": "Login Java", "status": "SUCCESS"})
         else:
-            print(f"   ❌ Échec {resp.status_code} : {resp.text}")
+            print(f"    Échec {resp.status_code} : {resp.text}")
             results.append({"step": "Login Java", "status": "FAILED"})
     except Exception as e:
-        print(f"   ❌ Erreur de connexion : {e}")
+        print(f"    Erreur de connexion : {e}")
         results.append({"step": "Login Java", "status": "ERROR"})
 
     # 3. Validation de session sur le service C (Wrapper)
@@ -60,13 +60,13 @@ def run_integration_test():
         url = f"http://localhost:{C_PORT}/auth/session"
         resp = requests.get(url, timeout=5)
         if resp.status_code == 200:
-            print(f"   ✅ Succès : {resp.json().get('status')} - Le service C est interopérable.")
+            print(f"    Succès : {resp.json().get('status')} - Le service C est interopérable.")
             results.append({"step": "Session C", "status": "SUCCESS"})
         else:
-            print(f"   ❌ Échec {resp.status_code}")
+            print(f"    Échec {resp.status_code}")
             results.append({"step": "Session C", "status": "FAILED"})
     except Exception as e:
-        print(f"   ❌ Erreur de connexion : {e}")
+        print(f"    Erreur de connexion : {e}")
         results.append({"step": "Session C", "status": "ERROR"})
 
     # Génération du rapport final
@@ -81,8 +81,8 @@ def run_integration_test():
         json.dump(report, f, indent=4)
 
     print("\n" + "="*60)
-    print(f"📊 RÉSULTAT GLOBAL : {report['overall_status']}")
-    print(f"📈 SCORE D'INTEROPÉRABILITÉ : {report['interoperability_score']}%")
+    print(f" RÉSULTAT GLOBAL : {report['overall_status']}")
+    print(f" SCORE D'INTEROPÉRABILITÉ : {report['interoperability_score']}%")
     print("="*60)
 
 if __name__ == "__main__":
