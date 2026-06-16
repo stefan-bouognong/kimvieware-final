@@ -125,6 +125,16 @@ class ExecutorService(MicroserviceBase):
         dest_file.write_text(test_code)
         return dest_dir
 
+    def _sanitize_for_json(self, obj):
+        """Recursively convert sets to lists to prevent JSON serialization errors."""
+        if isinstance(obj, set):
+            return list(obj)
+        elif isinstance(obj, dict):
+            return {k: self._sanitize_for_json(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._sanitize_for_json(v) for v in obj]
+        return obj
+
     def process_message(self, message: dict) -> dict:
         job_id = message['job_id']
         status = (message.get('status') or '').lower()
@@ -138,9 +148,12 @@ class ExecutorService(MicroserviceBase):
 
         trajectories_data = message.get('trajectories', [])
         sut_info  = message.get('sut_info', {})
-        sut_port  = message.get('metadata', {}).get('port', 8000)
-        sut_url   = f"http://localhost:{sut_port}"
         language  = sut_info.get('language', 'python')
+        
+        # Determine port based on language
+        default_port = 5000 if language.lower() in ('javascript', 'js', 'node') else 8000
+        sut_port  = message.get('metadata', {}).get('port', default_port)
+        sut_url   = f"http://localhost:{sut_port}"
 
         if not trajectories_data:
             return self._error(job_id, "No trajectories to execute")
@@ -229,7 +242,7 @@ class ExecutorService(MicroserviceBase):
             self.logger.error(f"[{job_id}] Failed to send feedback: {e}")
 
         # ── Build output message ──────────────────────────────────────────
-        return {
+        output_payload = {
             'job_id':     job_id,
             'status':     JobStatus.COMPLETED.value,   # ← always 'completed' here
             'sut_info':   sut_info,
@@ -265,6 +278,8 @@ class ExecutorService(MicroserviceBase):
                 'mutation_tool': mutation_stats.get('tool', 'unknown'),
             },
         }
+        
+        return self._sanitize_for_json(output_payload)
 
     def _error(self, job_id: str, msg: str) -> dict:
         return {

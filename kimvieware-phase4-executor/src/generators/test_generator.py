@@ -579,7 +579,7 @@ class TestGenerator:
         self,
         trajectories: List[Trajectory],
         output_dir: Path,
-        sut_url: str = "http://localhost:8000",
+        sut_url: str = "http://localhost:5000",
         language: str = "python",
     ) -> Tuple[Path, List[Dict]]:
         """
